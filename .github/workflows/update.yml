@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - Update
+  workflow_dispatch: {}
 
 jobs:
   create-pull-request:
