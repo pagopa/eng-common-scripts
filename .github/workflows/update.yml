@@ -1,0 +1,36 @@
+name: Rename for updated and new scripts and create PR 
+
+on:
+  push:
+    branches:
+      - Update
+  workflow_dispatch: {}
+
+jobs:
+  create-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Find updated or new scripts .sh and calculate sha256
+        id: sh-files
+        run: |
+          # Find updated .sh files and calculate sha256
+          sh_files=$(git diff --name-only HEAD^ HEAD | grep '\.sh$')
+          for file in $sh_files; do
+            sha=$(sha256sum "$file" | awk '{print $1}')
+            new_filename=$(echo "$file" | sed "s/.sh$/_$sha.sh/")
+            mv "$file" "$new_filename"
+          done
+          echo "::set-output name=sh-files::$(echo "$sh_files" | tr '\n' ',' | sed 's/,$//')"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4.2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "Update .sh files"
+          body: "Updated the following .sh files: ${{ steps.calculate-sha256.outputs.sh-files }}"
+          commit-message: "Updated .sh files"
+          branch: "update-sh-files"
+          base: "main"
