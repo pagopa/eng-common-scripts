@@ -98,7 +98,7 @@ function update_script() {
   response=$(curl -s -w "%{http_code}" "$repo_url")
 
   if [ "${response: -3}" == "404" ]; then
-    echo "Script non trovato nel repository."
+    echo "Script not found in the repository!"
     exit 1
   else
     new_version=$(echo "$response" | sed -n '1p')
