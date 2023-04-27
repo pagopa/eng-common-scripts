@@ -10,6 +10,7 @@ function clean_environment() {
 }
 
 function help_usage() {
+  echo "terraform.sh Version $(sed -n '3p' "$0" | awk '{print $3}')"
   echo "Usage: ./script.sh [ACTION] [ENV] [OTHER OPTIONS]"
   echo "es. ACTION: init, apply, plan, etc."
   echo "es. ENV: dev, uat, prod, etc."
@@ -92,7 +93,7 @@ function update_script() {
     exit 1
   fi
 
-  current_version=$(sed -n '3p' "$0" | awk '{print $NF}')
+  current_version=$(sed -n '3p' "$0" | awk '{print $3}')
   repo_url="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/terraform.sh"
   response=$(curl -s -w "%{http_code}" "$repo_url")
 
