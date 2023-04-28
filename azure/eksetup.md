@@ -30,6 +30,16 @@ Example:
 **./eksetup.sh -k**
 
 
+## Kubelogin
+
+Sometimes you will get the following message:
+```
+I0428 16:55:52.111080   11139 versioner.go:58] no Auth Provider found for name "azure"
+error: The azure auth plugin has been removed.
+```
+That means you need to convert your kubeconfig via `kubelogin` to use azurecli login mode.
+In that case you have to use **./eksetup.sh -k** in order to use `kubectl` or your preferred K8s client.
+
 ## Notes
 
 - The script assumes that the subscription configurations are stored in the `./subscription` directory.
