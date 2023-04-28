@@ -15,9 +15,9 @@ This script is designed to set up a configuration related to a specific subscrip
 **cd <scripts_folder>**
 
 2. Run the script with the chosen environment:
-**./eksetup.sh <ENV>**
+**././k8setup.sh <ENV>**
 
-Replace `<ENV>` with the desired environment. To list the available environments use **./eksetup.sh -l**
+Replace `<ENV>` with the desired environment. To list the available environments use **././k8setup.sh -l**
 
 
 3. The script provides the following options:
@@ -27,7 +27,7 @@ Replace `<ENV>` with the desired environment. To list the available environments
 - `-k`: Use kubelogin to convert kubeconfig to Azure CLI login mode
 
 Example:
-**./eksetup.sh -k**
+**././k8setup.sh -k**
 
 
 ## Kubelogin
@@ -38,7 +38,7 @@ I0428 16:55:52.111080   11139 versioner.go:58] no Auth Provider found for name "
 error: The azure auth plugin has been removed.
 ```
 That means you need to convert your kubeconfig via `kubelogin` to use azurecli login mode.
-In that case you have to use **./eksetup.sh -k** in order to use `kubectl` or your preferred K8s client.
+In that case you have to use **././k8setup.sh -k** in order to use `kubectl` or your preferred K8s client.
 
 ## Notes
 
