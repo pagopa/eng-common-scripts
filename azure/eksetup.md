@@ -1,0 +1,40 @@
+# Setup Script for AKS Configuration
+
+This script is designed to set up a configuration related to a specific subscription for Azure Kubernetes Service (AKS). The script will check for the necessary tools, such as Azure CLI and kubectl, before proceeding with the configuration.
+
+## Features
+
+- Setup configuration for a given subscription
+- Check for the existence of Azure CLI and kubectl
+- Set the AKS credentials
+- Optionally install and use kubelogin for converting kubeconfig to use Azure CLI login mode
+
+## Usage
+
+1. Change the current directory to the scripts folder:
+**cd <scripts_folder>**
+
+2. Run the script with the chosen environment:
+**./eksetup.sh <ENV>**
+
+Replace `<ENV>` with the desired environment. To list the available environments use **./eksetup.sh -l**
+
+
+3. The script provides the following options:
+
+- `-h`: Display help information
+- `-l`: List available environments
+- `-k`: Use kubelogin to convert kubeconfig to Azure CLI login mode
+
+Example:
+**./eksetup.sh -k**
+
+
+## Notes
+
+- The script assumes that the subscription configurations are stored in the `./subscription` directory.
+- Make sure you have the necessary permissions and tools installed before running the script.
+- The script will interactively ask for confirmation before installing the following packages using brew if they are not already present:
+  kubelogin
+  kubectl
+  azure-cli
