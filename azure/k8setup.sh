@@ -78,17 +78,20 @@ function check_env() {
     exit 1
   fi
 
+  env_file_path="../env/${ENV}/backend.ini"
+
   # Check if backend.ini exists
-  if [ -f "../env/$ENV/backend.ini" ]; then
+  if [ -f "$env_file_path" ]; then
     #shellcheck source=../env/dev01/backend.ini
-    source "../env/$ENV/backend.ini"
+    source "$env_file_path"
   else
-    echo "[ERROR] File ../env/$ENV/backend.ini not found."
+    echo "[ERROR] File $env_file_path not found."
     exit 1
   fi
+
   # Check if subscription has been specified
   if [ -z "${subscription}" ]; then
-    echo "[ERROR] Subscription not found in the environment file: '../env/$ENV/backend.ini'}"
+    echo "[ERROR] Subscription not found in the environment file: '$env_file_path'}"
     exit 1
   fi
 
