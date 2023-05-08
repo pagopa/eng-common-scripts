@@ -6,7 +6,7 @@ set -e
 # Fingerprint: c2V0dXAuc2gK
 ############################################################
 # Global variables
-VERS="1.1"
+VERS="1.2"
 # Gestisce le diverse posizioni di "ENV"
 THISENV=$(ls -d ./ENV 2>/dev/null || ls -d ../ENV 2>/dev/null)
 
