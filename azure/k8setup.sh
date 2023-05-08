@@ -6,9 +6,9 @@ set -e
 # Fingerprint: c2V0dXAuc2gK
 ############################################################
 # Global variables
-VERS="1.2"
+VERS="1.1"
 # Gestisce le diverse posizioni di "ENV"
-THISENV=$(ls -d ./ENV 2>/dev/null || ls -d ../ENV 2>/dev/null)
+THISENV=$(ls -d ./env 2>/dev/null || ls -d ../env 2>/dev/null)
 
 # Define a helper function to print usage information                                                     #
 function print_usage() {
