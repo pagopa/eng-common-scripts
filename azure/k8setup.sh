@@ -7,13 +7,15 @@ set -e
 ############################################################
 # Global variables
 VERS="1.1"
+# Gestisce le diverse posizioni di "ENV"
+THISENV=$(ls -d ./ENV 2>/dev/null || ls -d ../ENV 2>/dev/null)
 
 # Define a helper function to print usage information                                                     #
 function print_usage() {
   echo "Setup v."${VERS} "sets up a configuration relative to a specific subscription"
   echo "Usage: cd <scripts folder>"
   echo "  ./setup.sh <ENV>"
-  for thisenv in $(ls "../env")
+  for thisenv in $(ls $THISENV)
   do
       echo "  Example: ./setup.sh ${thisenv}"
   done
@@ -95,18 +97,11 @@ fi
 function check_env() {
   ENV=$1
 
-  # Check if env has been properly entered
-  if [ ! -d "../env/$ENV" ]; then
-    echo "[ERROR] ENV should be one of:"
-    ls "../env"
-    exit 1
-  fi
-
   # Check if backend.ini exists
-  if [ -f "../env/$ENV/backend.ini" ]; then
-    source "../env/$ENV/backend.ini"
+  if [ -f "${THISENV}/${ENV}/backend.ini" ]; then
+    source "${THISENV}/${ENV}/backend.ini"
   else
-    echo "[ERROR] File ../env/$ENV/backend.ini not found."
+    echo "[ERROR] File ${THISENV}/$ENV/backend.ini not found."
     exit 1
   fi
   # Check if subscription has been specified
@@ -179,7 +174,7 @@ while getopts ":hlk-:" option; do
         exit;;
       l) # list available environments
         echo "Available environment(-s):"
-        ls "../env"
+        ls -1 $THISENV
         exit;;
       k) # kubelogin convert kubeconfig
         echo "converting kubeconfig to use azurecli login mode."
