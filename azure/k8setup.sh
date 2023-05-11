@@ -15,7 +15,7 @@ function print_usage() {
   echo "Setup v."${VERS} "sets up a configuration relative to a specific subscription"
   echo "Usage: cd <scripts folder>"
   echo "  ./setup.sh <ENV>"
-  for thisenv in $(ls $THISENV)
+  for thisenv in "$THISENV"/*
   do
       echo "  Example: ./setup.sh ${thisenv}"
   done
@@ -36,10 +36,12 @@ function def_var() {
     installpkg "azure-cli"
   fi
 
-  export aks_name_from_cli=$(az aks list -o tsv --query "[?contains(name,'$ENV-aks')].{Name:name}" 2>/dev/null | tr -d '\r')
+  aks_name_from_cli=$(az aks list -o tsv --query "[?contains(name,'$ENV-aks')].{Name:name}" 2>/dev/null | tr -d '\r')
+  export aks_name_from_cli
   export aks_name=${aks_name_from_cli}
   echo "[INFO] aks_name_from_cli: ${aks_name_from_cli}"
-  export aks_resource_group_name_from_cli=$(az aks list -o tsv --query "[?contains(name,'$ENV-aks')].{Name:resourceGroup}" 2>/dev/null)
+  aks_resource_group_name_from_cli=$(az aks list -o tsv --query "[?contains(name,'$ENV-aks')].{Name:resourceGroup}" 2>/dev/null)
+  export aks_resource_group_name_from_cli
   echo "[INFO] aks_resource_group_name_from_cli: ${aks_resource_group_name_from_cli}"
 
   # ⚠️ in windows, even if using cygwin, these variables will contain a landing \r character
@@ -51,8 +53,11 @@ function def_var() {
 # if using cygwin, we have to transcode the WORKDIR
 export HOME_DIR=$HOME
 if [[ $HOME_DIR == /cygdrive/* ]]; then
-  export HOME_DIR=$(cygpath -w ~)
-  export HOME_DIR=${HOME_DIR//\\//}
+  HOME_DIR=$(cygpath -w ~)
+  export HOME_DIR
+or
+  HOME_DIR=${HOME_DIR//\\//}
+  export HOME_DIR
 fi
 }
 
@@ -99,6 +104,7 @@ function check_env() {
 
   # Check if backend.ini exists
   if [ -f "${THISENV}/${ENV}/backend.ini" ]; then
+    # shellcheck source=/dev/null
     source "${THISENV}/${ENV}/backend.ini"
   else
     echo "[ERROR] File ${THISENV}/$ENV/backend.ini not found."
@@ -106,7 +112,7 @@ function check_env() {
   fi
   # Check if subscription has been specified
   if [ -z "${subscription}" ]; then
-    echo "[ERROR] Subscription not found in the environment file: ${env_file_path}"
+    echo "[ERROR] Subscription ${subscription} not found in the environment file: ${ENV}"
     exit 1
   fi
 
@@ -129,16 +135,14 @@ function installpkg() {
   fi
   pkg=$1
   # Check if the kubelogin command exists
-  if ! command -v $pkg &> /dev/null; then
+  if ! command -v "$pkg" &> /dev/null; then
       echo "The ${pkg} command is not present on the system."
 
       # Ask the user for confirmation to install kubelogin
-      read -p "Do you want to install ${pkg} using brew? (Y/n): " response
+      read -rp "Do you want to install ${pkg} using brew? (Y/n): " response
       if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
           echo "Installing ${pkg} using brew..."
-          brew install ${pkg}
-
-          if [ $? -eq 0 ]; then
+          if brew install "${pkg}" ; then
               echo "${pkg} successfully installed."
           else
               echo "An error occurred during the installation of ${pkg}. Check the output for more information."
@@ -156,7 +160,7 @@ function setup() {
     installpkg "kubectl"
   fi
   rm -rf "${HOME}/.kube/config-${aks_name}"
-  az aks get-credentials -g "${aks_resource_group_name}" -n "${aks_name}" --subscription "${subscription}" --file "~/.kube/config-${aks_name}"
+  az aks get-credentials -g "${aks_resource_group_name}" -n "${aks_name}" --subscription "${subscription}" --file "/Users/$(whoami)/.kube/config-${aks_name}"
   az aks get-credentials -g "${aks_resource_group_name}" -n "${aks_name}" --subscription "${subscription}" --overwrite-existing
 
   # with AAD auth enabled we need to authenticate the machine on the first setup
@@ -174,14 +178,15 @@ while getopts ":hlk-:" option; do
         exit;;
       l) # list available environments
         echo "Available environment(-s):"
-        ls -1 $THISENV
+        ls -1 "$THISENV"
         exit;;
       k) # kubelogin convert kubeconfig
         echo "converting kubeconfig to use azurecli login mode."
         installpkg "kubelogin"
-	for n in $(ls -1 /Users/$(whoami)/.kube/config*); do
-          kubelogin convert-kubeconfig -l azurecli --kubeconfig $n
-	done
+        for confg in /Users/"$(whoami)"/.kube/config*; do
+                kubelogin convert-kubeconfig -l azurecli --kubeconfig "$confg"
+                echo "${confg} converted!"
+        done
          exit;;
       *) # Invalid option
         echo "Error: Invalid option"
@@ -190,8 +195,8 @@ while getopts ":hlk-:" option; do
 done
 
 if [[ $1 ]]; then
-  check_env $1
-  def_var $1
+  check_env "$1"
+  def_var "$1"
   setup
 else
   print_usage

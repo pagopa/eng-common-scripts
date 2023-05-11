@@ -56,7 +56,7 @@ function list_env() {
 
 function other_actions() {
   if [ -n "$env" ] && [ -n "$action" ]; then
-    terraform $action -var-file="./env/$env/terraform.tfvars" -compact-warnings $other
+    terraform "$action" -var-file="./env/$env/terraform.tfvars" -compact-warnings "$other"
   else
     echo "ERROR: no env or action configured!"
     exit 1
@@ -64,7 +64,7 @@ function other_actions() {
 }
 
 function state_output_taint_actions() {
-  terraform $action $other
+  terraform "$action" "$other"
 }
 
 function tfsummary() {
@@ -75,59 +75,6 @@ function tfsummary() {
     tf-summarize -separate-tree tfplan && rm tfplan
   else
     echo "tf-summarize is not installed"
-  fi
-}
-
-function update_script() {
-  set -x
-  # Check if update is needed
-  if [ -z "$(command -v curl)" ]; then
-    echo "curl not found, cannot update script"
-    exit 1
-  fi
-
-  current_version=$(sed -n '3p' "$0" | awk '{print $3}')
-  repo_url="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/terraform.sh"
-  response=$(curl -s -w "%{http_code}" "$repo_url")
-
-  if [ "${response: -3}" == "404" ]; then
-    echo "Script not found in the repository!"
-    exit 1
-  else
-    new_version=$(echo "$response" | sed -n '1p')
-    new_script=$(curl -s "$repo_url")
-  fi
-
-  exit 0
-  ###
-  ### it will be modified in the future releases
-  ###
-  if [ "$(printf '%s\n' "$new_version" "$current_version" | sort -V | head -n 1)" != "$new_version" ]; then
-    # Ask for confirmation
-    read -p "New version $new_version available. Do you want to update? (y/n) " choice
-    case "$choice" in
-      y|Y )
-        echo "Updating script to version $new_version"
-        ;;
-      * )
-        echo "Update canceled"
-        exit 0
-        ;;
-    esac
-  elif [ "$current_version" == "$new_version" ]; then
-    echo "Script is up to date"
-    exit 0
-  fi
-
-
-  # Download new version
-  new_script=$(curl -s "$repo_url")
-  if [ -n "$new_script" ]; then
-    echo "$new_script" > "$0"
-    echo "Script updated to version $new_version"
-  else
-    echo "Failed to download new script"
-    exit 1
   fi
 }
 
@@ -144,6 +91,7 @@ shift 2
 other=$@
 
 if [ -n "$env" ]; then
+  # shellcheck source=/dev/null
   source "./env/$env/backend.ini"
   if [ -z "$(command -v az)" ]; then
     echo "az not found, cannot proceed"
@@ -162,24 +110,24 @@ case $action in
     ;;
   init)
     init_terraform
-    init_terraform $other
+    init_terraform "$other"
     ;;
   list)
     list_env
     ;;
   output|state|taint)
     init_terraform
-    state_output_taint_actions $other
+    state_output_taint_actions "$other"
     ;;
   summ)
     init_terraform
-    tfsummary $other
+    tfsummary "$other"
     ;;
   update_script)
     update_script
     ;;
   *)
     init_terraform
-    other_actions $other
+    other_actions "$other"
     ;;
 esac
