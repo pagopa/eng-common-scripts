@@ -10,10 +10,10 @@ VERS="1.0"
 # Print usage information                                                     #
 ############################################################
 function print_usage() {
-  me=`basename "$0"`
+  me=$(asename "$0")
   echo "Setup v."${VERS} "sets up a configuration relative to a specific subscription"
   echo "  ./${me} <resource name to remove> <resource name to add> <ENV>"
-  for thisenv in $(ls "env/")
+  for thisenv in "env"/*;
   do
       echo "  Example: ./${me} \"module.function_lollipop[0].azurerm_function_app.this\" \"module.function_lollipop[0].azurerm_linux_function_app.this\" ${thisenv}"
   done
@@ -50,19 +50,17 @@ function removeAndImport() {
         echo "You need to define the resources to be removed and imported in order to proceed and the environment to be used!!"
         exit 1
     fi
-    if [ "$(terraform show | grep $esc_old_resource_name)" ]; then
+    if terraform show | grep -q "$esc_old_resource_name" ; then
         # Get the resource ID
         function_app_id=$(terraform show -json | jq --arg resource "$old_resource_name" '.values.root_module.child_modules[].resources[] | select(.address==$resource).values.id' | tr -d '"')
         echo "function_app_id: ${function_app_id}"
         # Import the resource
         echo "Importing the resource ${new_resource_name}"
-        ./terraform.sh import $myenv $new_resource_name $function_app_id 
-        if [ $? -eq 0 ]; then
+        if ./terraform.sh import "$myenv" "$new_resource_name" "$function_app_id"; then
             echo "Successfully imported the resource ${new_resource_name} with ID: ${function_app_id}!"
             # Remove the resource from the state file
-            echo "Removing the resource ${old_resource_name}"
-            terraform state rm "$old_resource_name"
-            if [ $? -eq 0 ]; then
+            echo "Removing the resource ${old_resource_name}"          
+            if terraform state rm "$old_resource_name"; then
                 echo "$old_resource_name removed!"
             else
                 echo "I can't remove the resource $old_resource_name from your Terraform state!"
@@ -95,7 +93,7 @@ while getopts ":hl-:" option; do
 done
 
 if [[ $3 ]]; then
-  removeAndImport $1 $2 $3
+  removeAndImport "$1" "$2" "$3"
 else
   print_usage
 fi
