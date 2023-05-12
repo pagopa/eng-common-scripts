@@ -5,7 +5,7 @@
 # Define functions
 function clean_environment() {
   rm -rf .terraform*
-  rm tfplan
+  rm tfplan 2>/dev/null
   echo "cleaned!"
 }
 
