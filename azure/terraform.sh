@@ -1,7 +1,13 @@
 #!/bin/bash
+############################################################
 # Terraform script for managing infrastructure on Azure
+# Fingerprint: d2hhdHlvdXdhbnQ/Cg==
+############################################################
+# Global variables
 # Version 1.0 (version format x.y accepted)
-#
+vers="1.1"
+git_repo="https://github.com/your/repo.git"
+
 # Define functions
 function clean_environment() {
   rm -rf .terraform*
@@ -76,6 +82,57 @@ function tfsummary() {
   else
     echo "tf-summarize is not installed"
   fi
+}
+
+function update_script() {
+  # Clone the repository to the temporary directory
+  tmp_file=$(mktemp)
+  curl -sL "$git_repo/blob/master/terraform.sh" -o "$tmp_file"
+
+  # Check if the repository was cloned successfully
+  if [ $? -ne 0 ]; then
+    echo "Error cloning the repository"
+    rm "$tmp_file" 2>/dev/null
+    return 1
+  fi
+
+  # Check if a newer version exists
+  remote_vers=$(sed -n '8s/.*"\(.*\)"/\1/p' "$tmp_file")
+
+  if [ "$(printf '%s\n' "$vers" "$remote_vers" | sort -V | tail -n 1)" != "$remote_vers" ]; then
+    echo "The local script version is equal to or newer than the remote version."
+    rm "$tmp_file" 2>/dev/null
+    return 0
+  fi
+
+  # Check the fingerprint
+  local_fingerprint=$(sed -n '4p' "$0")
+  remote_fingerprint=$(sed -n '4p' "$tmp_file")
+
+  if [ "$local_fingerprint" != "$remote_fingerprint" ]; then
+    echo "The local and remote file fingerprints do not match."
+    rm "$tmp_file" 2>/dev/null
+    return 0
+  fi
+
+  # Show the current and available versions to the user
+  echo "Current script version: $vers"
+  echo "Available script version: $remote_vers"
+
+  # Ask the user if they want to update the script
+  read -p "Do you want to update the script to version $remote_vers? (y/n): " answer
+
+  if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
+    # Replace the local script with the updated version
+    cp "$script_path" "$0"
+    chmod +x "$0"
+
+    echo "Script successfully updated to version $remote_vers"
+  else
+    echo "Update canceled by the user"
+  fi
+
+  rm "$tmp_file" 2>/dev/null
 }
 
 # Check arguments number
