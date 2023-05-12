@@ -18,15 +18,18 @@ function clean_environment() {
 }
 
 function help_usage() {
-  echo "terraform.sh Version $(sed -n '3p' "$0" | awk '{print $3}')"
+  echo "terraform.sh Version ${vers}"
+  echo
   echo "Usage: ./script.sh [ACTION] [ENV] [OTHER OPTIONS]"
   echo "es. ACTION: init, apply, plan, etc."
   echo "es. ENV: dev, uat, prod, etc."
+  echo
   echo "Available actions:"
   echo "  clean         Remove .terraform* folders and tfplan files"
   echo "  help          This help"
   echo "  list          List every environment available"
   echo "  summ          Generate summary of Terraform plan"
+  echo "  *             any terraform option"
 }
 
 function init_terraform() {
@@ -100,7 +103,7 @@ function update_script() {
   # Check if a newer version exists
   remote_vers=$(sed -n '8s/vers="\(.*\)"/\1/p' "$tmp_file")
   if [ "$(printf '%s\n' "$vers" "$remote_vers" | sort -V | tail -n 1)" == "$vers" ]; then
-    echo -e "\xE2\x9A\xA0 The local script version is equal to or newer than the remote version."
+    echo "The local script version is equal to or newer than the remote version."
     rm "$tmp_file" 2>/dev/null
     return 0
   fi
@@ -110,7 +113,7 @@ function update_script() {
   remote_fingerprint=$(sed -n '4p' "$tmp_file")
 
   if [ "$local_fingerprint" != "$remote_fingerprint" ]; then
-    echo -e "\xE2\x9A\xA0 The local and remote file fingerprints do not match."
+    echo "The local and remote file fingerprints do not match."
     rm "$tmp_file" 2>/dev/null
     return 0
   fi
