@@ -6,7 +6,9 @@
 # Global variables
 # Version 1.0 (version format x.y accepted)
 vers="1.1"
-git_repo="https://github.com/your/repo.git"
+script_name=$(basename "$0")
+git_repo="https://github.com/pagopa/eng-common-scripts/blob/main/azure/${script_name}"
+tmp_file="${script_name}.new"
 
 # Define functions
 function clean_environment() {
@@ -86,8 +88,7 @@ function tfsummary() {
 
 function update_script() {
   # Clone the repository to the temporary directory
-  tmp_file=$(mktemp)
-  curl -sL "$git_repo/blob/master/terraform.sh" -o "$tmp_file"
+  curl -sL "$git_repo" -o "$tmp_file"
 
   # Check if the repository was cloned successfully
   if [ $? -ne 0 ]; then
@@ -99,7 +100,7 @@ function update_script() {
   # Check if a newer version exists
   remote_vers=$(sed -n '8s/.*"\(.*\)"/\1/p' "$tmp_file")
 
-  if [ "$(printf '%s\n' "$vers" "$remote_vers" | sort -V | tail -n 1)" != "$remote_vers" ]; then
+  if [ -z "$remote_vers" ] || [ "$(printf '%s\n' "$VERS" "$remote_vers" | sort -V | tail -n 1)" != "$remote_vers" ]; then
     echo "The local script version is equal to or newer than the remote version."
     rm "$tmp_file" 2>/dev/null
     return 0
@@ -124,8 +125,9 @@ function update_script() {
 
   if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
     # Replace the local script with the updated version
-    cp "$script_path" "$0"
-    chmod +x "$0"
+    cp "$tmp_file" "$script_name"
+    chmod +x "$script_name"
+    rm "$tmp_file" 2>/dev/null
 
     echo "Script successfully updated to version $remote_vers"
   else
@@ -180,7 +182,7 @@ case $action in
     init_terraform
     tfsummary "$other"
     ;;
-  update_script)
+  update)
     update_script
     ;;
   *)
