@@ -100,7 +100,7 @@ function update_script() {
   # Check if a newer version exists
   remote_vers=$(sed -n '8s/vers="\(.*\)"/\1/p' "$tmp_file")
   if [ "$(printf '%s\n' "$vers" "$remote_vers" | sort -V | tail -n 1)" == "$vers" ]; then
-    echo "The local script version is equal to or newer than the remote version."
+    echo -e "\xE2\x9A\xA0 The local script version is equal to or newer than the remote version."
     rm "$tmp_file" 2>/dev/null
     return 0
   fi
@@ -110,7 +110,7 @@ function update_script() {
   remote_fingerprint=$(sed -n '4p' "$tmp_file")
 
   if [ "$local_fingerprint" != "$remote_fingerprint" ]; then
-    echo "The local and remote file fingerprints do not match."
+    echo -e "\xE2\x9A\xA0 The local and remote file fingerprints do not match."
     rm "$tmp_file" 2>/dev/null
     return 0
   fi
