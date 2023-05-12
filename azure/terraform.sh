@@ -56,7 +56,7 @@ function list_env() {
 
 function other_actions() {
   if [ -n "$env" ] && [ -n "$action" ]; then
-    terraform "$action" -var-file="./env/$env/terraform.tfvars" -compact-warnings "$other"
+    terraform "$action" -var-file="./env/$env/terraform.tfvars" -compact-warnings ${other:+"$other"}
   else
     echo "ERROR: no env or action configured!"
     exit 1
