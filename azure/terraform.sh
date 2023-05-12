@@ -4,10 +4,10 @@
 # Fingerprint: d2hhdHlvdXdhbnQ/Cg==
 ############################################################
 # Global variables
-# Version 1.0 (version format x.y accepted)
+# Version format x.y accepted
 vers="1.1"
 script_name=$(basename "$0")
-git_repo="https://github.com/pagopa/eng-common-scripts/blob/main/azure/${script_name}"
+git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/update_scripts/azure/${script_name}"
 tmp_file="${script_name}.new"
 
 # Define functions
@@ -98,9 +98,8 @@ function update_script() {
   fi
 
   # Check if a newer version exists
-  remote_vers=$(sed -n '8s/.*"\(.*\)"/\1/p' "$tmp_file")
-
-  if [ -z "$remote_vers" ] || [ "$(printf '%s\n' "$VERS" "$remote_vers" | sort -V | tail -n 1)" != "$remote_vers" ]; then
+  remote_vers=$(sed -n '8s/vers="\(.*\)"/\1/p' "$tmp_file")
+  if [ "$(printf '%s\n' "$vers" "$remote_vers" | sort -V | tail -n 1)" == "$vers" ]; then
     echo "The local script version is equal to or newer than the remote version."
     rm "$tmp_file" 2>/dev/null
     return 0
