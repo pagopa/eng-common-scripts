@@ -7,7 +7,7 @@
 # Version format x.y accepted
 vers="1.1"
 script_name=$(basename "$0")
-git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/update_scripts/azure/${script_name}"
+git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
 
 # Define functions
@@ -90,11 +90,8 @@ function tfsummary() {
 }
 
 function update_script() {
-  # Clone the repository to the temporary directory
-  curl -sL "$git_repo" -o "$tmp_file"
-
   # Check if the repository was cloned successfully
-  if [ $? -ne 0 ]; then
+  if ! curl -sL "$git_repo" -o "$tmp_file"; then
     echo "Error cloning the repository"
     rm "$tmp_file" 2>/dev/null
     return 1
@@ -123,7 +120,7 @@ function update_script() {
   echo "Available script version: $remote_vers"
 
   # Ask the user if they want to update the script
-  read -p "Do you want to update the script to version $remote_vers? (y/n): " answer
+  read -rp "Do you want to update the script to version $remote_vers? (y/n): " answer
 
   if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then
     # Replace the local script with the updated version
