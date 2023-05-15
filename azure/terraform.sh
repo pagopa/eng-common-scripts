@@ -185,6 +185,7 @@ case $action in
     update_script
     ;;
   *)
+    [ -z "$TF_INIT" ] && terraform init
     other_actions "$other"
     ;;
 esac
