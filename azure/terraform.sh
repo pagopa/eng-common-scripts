@@ -67,7 +67,7 @@ function list_env() {
 
 function other_actions() {
   if [ -n "$env" ] && [ -n "$action" ]; then
-    terraform "$action" -var-file="./env/$env/terraform.tfvars" -compact-warnings ${other:+"$other"}
+    terraform "$action" -var-file="./env/$env/terraform.tfvars" -compact-warnings $other
   else
     echo "ERROR: no env or action configured!"
     exit 1
@@ -75,7 +75,7 @@ function other_actions() {
 }
 
 function state_output_taint_actions() {
-  terraform "$action" "$other"
+  terraform $action $other
 }
 
 function tfsummary() {
@@ -175,7 +175,7 @@ case $action in
     ;;
   output|state|taint)
     init_terraform
-    state_output_taint_actions "$other"
+    state_output_taint_actions $other
     ;;
   summ)
     init_terraform
@@ -185,7 +185,6 @@ case $action in
     update_script
     ;;
   *)
-    init_terraform
     other_actions "$other"
     ;;
 esac
