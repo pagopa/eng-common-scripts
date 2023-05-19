@@ -12,6 +12,8 @@ set -e
 
 # Global variables
 VERS="1.1"
+# Gestisce le diverse posizioni di "ENV"
+THISENV=$(ls -d ./env 2>/dev/null || ls -d ../env 2>/dev/null)
 
 # Define a helper function to print usage information                                                     #
 function print_usage() {
@@ -118,7 +120,6 @@ function installpkg() {
   fi
 
   pkg=$1
-
   if [ -z "$2" ]
     then
       cmd=$pkg
@@ -134,9 +135,7 @@ function installpkg() {
       read -p "Do you want to install ${pkg} using brew? (Y/n): " response
       if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
           echo "Installing ${pkg} using brew..."
-          brew install ${pkg}
-
-          if [ $? -eq 0 ]; then
+          if brew install "${pkg}" ; then
               echo "${pkg} successfully installed."
           else
               echo "An error occurred during the installation of ${pkg}. Check the output for more information."
@@ -202,7 +201,7 @@ while getopts ":hlks-:" option; do
         exit;;
       l) # list available environments
         echo "Available environment(-s):"
-        ls "../env"
+        ls -1 "$THISENV"
         exit;;
       s) #setup requirements
         echo "Installing requirements..."
@@ -210,7 +209,11 @@ while getopts ":hlks-:" option; do
         installpkg "kubectl"
         installpkg "kubelogin"
         installpkg "jq"
-        exit;;
+        for confg in /Users/"$(whoami)"/.kube/config*; do
+          kubelogin convert-kubeconfig -l azurecli --kubeconfig "$confg"
+          echo "${confg} converted!"
+        done
+         exit;;
       *) # Invalid option
         echo "Error: Invalid option"
         echo ""
@@ -221,8 +224,8 @@ while getopts ":hlks-:" option; do
 done
 
 if [[ $1 ]]; then
-  check_env $1
-  def_var $1
+  check_env "$1"
+  def_var "$1"
   setup
 else
   print_usage
