@@ -14,13 +14,13 @@ THISENV=$(ls -d ./env 2>/dev/null || ls -d ../env 2>/dev/null)
 function print_usage() {
   echo "Setup v."${VERS} "sets up a configuration relative to a specific subscription"
   echo "Usage: cd <scripts folder>"
-  echo "  ./setup.sh <ENV>"
+  echo "  ./k8setup.sh <ENV>"
   for thisenv in "$THISENV"/*
   do
-      echo "  Example: ./setup.sh ${thisenv}"
+    echo "  Example: ./k8setup.sh ${thisenv}"
   done
   echo
-  echo "Syntax: setup.sh [-l|h|k]"
+  echo "Syntax: k8setup.sh [-l|h|k]"
   echo "  options:"
   echo "  h     Print this Help."
   echo "  l     List available environments."
@@ -50,53 +50,16 @@ function def_var() {
   export aks_resource_group_name=${aks_resource_group_name_from_cli//[$'\r']}
   # echo "[INFO] aks_resource_group_name: ${aks_resource_group_name}"
 
-# if using cygwin, we have to transcode the WORKDIR
-export HOME_DIR=$HOME
-if [[ $HOME_DIR == /cygdrive/* ]]; then
-  HOME_DIR=$(cygpath -w ~)
-  export HOME_DIR
-or
-  HOME_DIR=${HOME_DIR//\\//}
-  export HOME_DIR
-fi
+  # if using cygwin, we have to transcode the WORKDIR
+  export HOME_DIR=$HOME
+  if [[ $HOME_DIR == /cygdrive/* ]]; then
+    HOME_DIR=$(cygpath -w ~)
+    export HOME_DIR
+  or
+    HOME_DIR=${HOME_DIR//\\//}
+    export HOME_DIR
+  fi
 }
-
-
-# TBD: Check if there is a newer script version                 
-# function check_update() {
-#   # Check for a newer version of the script on a remote location, such as a website or a repository
-#   new_script_location="$(cat ${config_file}  | grep script_url | awk -F": " '{print $2}' | awk -F"\"" '{print $2}')"
-
-#   # Download the new script and overwrite the old one
-#   if curl --fail --silent --location "$new_script_location" > "$current_script_location"; then
-#     chmod +x "$current_script_location"
-#     echo "Successfully updated the script $current_script_name"
-#     exit 0
-#   else
-#     echo "No update found for the script $current_script_name"
-#   fi
-
-#   # check if we can download the remote script
-#   curl -s "$new_script_location" > remote_script.sh || {
-#     echo "Error: Unable to download the remote script."
-#     return 1
-#   }
-
-#   # compare the local and remote script version
-#   local_version=$(cat "version: " | grep "version: " | awk '{print $2}' | tr -d "\"")
-#   remote_version=$(grep -oP '# version \K[^\s]+' remote_script.sh)
-
-#   if [ "$local_version" = "$remote_version" ]; then
-#     echo "You are already using the latest version ($local_version) of the script."
-#     rm remote_script.sh
-#     return 0
-#   fi
-
-#   # overwrite the local script with the remote version
-#   mv remote_script.sh script.sh
-#   echo "Successfully updated to version $remote_version."
-#   return 0
-# }
 
 # Check chosen environment                                 
 function check_env() {
@@ -136,24 +99,25 @@ function installpkg() {
   pkg=$1
   # Check if the kubelogin command exists
   if ! command -v "$pkg" &> /dev/null; then
-      echo "The ${pkg} command is not present on the system."
+    echo "The ${pkg} command is not present on the system."
 
-      # Ask the user for confirmation to install kubelogin
-      read -rp "Do you want to install ${pkg} using brew? (Y/n): " response
-      if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
-          echo "Installing ${pkg} using brew..."
-          if brew install "${pkg}" ; then
-              echo "${pkg} successfully installed."
-          else
-              echo "An error occurred during the installation of ${pkg}. Check the output for more information."
-              return 1
-          fi
+    # Ask the user for confirmation to install kubelogin
+    read -rp "Do you want to install ${pkg} using brew? (Y/n): " response
+    if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+      echo "Installing ${pkg} using brew..."
+      if brew install "${pkg}" ; then
+        echo "${pkg} successfully installed."
       else
-          echo "${pkg} installation canceled by the user."
-          exit 1
+        echo "An error occurred during the installation of ${pkg}. Check the output for more information."
+        return 1
       fi
+    else
+      echo "${pkg} installation canceled by the user."
+      exit 1
+    fi
   fi
 }
+
 function setup() {
   # Main part. It set aks credentials
   if ! command -v kubectl &> /dev/null; then
@@ -162,6 +126,11 @@ function setup() {
   rm -rf "${HOME}/.kube/config-${aks_name}"
   az aks get-credentials -g "${aks_resource_group_name}" -n "${aks_name}" --subscription "${subscription}" --file "/Users/$(whoami)/.kube/config-${aks_name}"
   az aks get-credentials -g "${aks_resource_group_name}" -n "${aks_name}" --subscription "${subscription}" --overwrite-existing
+
+  # kubelogin convert kubeconfig
+  installpkg "kubelogin"
+  kubelogin convert-kubeconfig -l azurecli --kubeconfig "${HOME_DIR}/.kube/config-${aks_name}"
+  kubelogin convert-kubeconfig -l azurecli --kubeconfig "${HOME_DIR}/.kube/config"
 
   # with AAD auth enabled we need to authenticate the machine on the first setup
   echo "Follow Microsoft sign in steps. kubectl get namespaces command will fail but it's the expected behavior"
@@ -172,26 +141,26 @@ function setup() {
 
 # Main program                                             
 while getopts ":hlk-:" option; do
-   case $option in
-      h) # display Help
-        print_usage
-        exit;;
-      l) # list available environments
-        echo "Available environment(-s):"
-        ls -1 "$THISENV"
-        exit;;
-      k) # kubelogin convert kubeconfig
-        echo "converting kubeconfig to use azurecli login mode."
-        installpkg "kubelogin"
-        for confg in /Users/"$(whoami)"/.kube/config*; do
-                kubelogin convert-kubeconfig -l azurecli --kubeconfig "$confg"
-                echo "${confg} converted!"
-        done
-         exit;;
-      *) # Invalid option
-        echo "Error: Invalid option"
-        exit;;
-   esac
+  case $option in
+    h) # display Help
+      print_usage
+      exit;;
+    l) # list available environments
+      echo "Available environment(-s):"
+      ls -1 "$THISENV"
+      exit;;
+    k) # kubelogin convert kubeconfig
+      echo "converting kubeconfig to use azurecli login mode."
+      installpkg "kubelogin"
+      for confg in /Users/"$(whoami)"/.kube/config*; do
+        kubelogin convert-kubeconfig -l azurecli --kubeconfig "$confg"
+        echo "${confg} converted!"
+      done
+      exit;;
+    *) # Invalid option
+      echo "Error: Invalid option"
+      exit;;
+  esac
 done
 
 if [[ $1 ]]; then
