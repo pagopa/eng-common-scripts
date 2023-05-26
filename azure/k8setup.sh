@@ -23,12 +23,10 @@ function print_usage() {
   echo "-------------------------------------------------------------------------"
   echo "Usage: cd <scripts folder>"
   echo "  ./k8setup.sh <ENV>"
-  cd ../env
-  for thisenv in *
+  for thisenv in ${THISENV}
   do
       echo "  Example: ./k8setup.sh ${thisenv}"
   done
-  cd ../scripts
   echo
   echo "Syntax: setup.sh [-l|h|k|s]"
   echo "  options:"
@@ -74,13 +72,13 @@ function check_env() {
   ENV=$1
 
   # Check if env has been properly entered
-  if [ ! -d "../env/$ENV" ]; then
+  if [ ! -d "${THISENV}/$ENV" ]; then
     echo "[ERROR] ENV should be one of:"
-    ls "../env"
+    ls -1 ${THISENV}
     exit 1
   fi
 
-  env_file_path="../env/${ENV}/backend.ini"
+  env_file_path="${THISENV}/${ENV}/backend.ini"
 
   # Check if backend.ini exists
   if [ -f "$env_file_path" ]; then
