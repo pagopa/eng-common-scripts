@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.2"
+vers="1.3"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -28,6 +28,7 @@ function help_usage() {
   echo "  clean         Remove .terraform* folders and tfplan files"
   echo "  help          This help"
   echo "  list          List every environment available"
+  echo "  update        Update this script if possible"
   echo "  summ          Generate summary of Terraform plan"
   echo "  *             any terraform option"
 }
