@@ -5,14 +5,14 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.1"
+vers="1.2"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
 
 # Define functions
 function clean_environment() {
-  rm -rf .terraform*
+  rm -rf .terraform
   rm tfplan 2>/dev/null
   echo "cleaned!"
 }
