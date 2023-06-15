@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.3"
+vers="1.4"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -186,7 +186,7 @@ case $action in
     update_script
     ;;
   *)
-    terraform init
+    init_terraform
     other_actions "$other"
     ;;
 esac
