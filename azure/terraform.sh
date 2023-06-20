@@ -75,6 +75,16 @@ function other_actions() {
   fi
 }
 
+## Apply state don't have -var-file or vars because are inherith from output state
+function apply_state_action() {
+  if [ -n "$env" ] && [ "apply-state" == "$action" ]; then
+    terraform apply $other
+  else
+    echo "ERROR: no env or action configured!"
+    exit 1
+  fi
+}
+
 function state_output_taint_actions() {
   terraform $action $other
 }
@@ -149,6 +159,8 @@ env=$2
 shift 2
 other=$@
 
+subscription="NOT_LOADED"
+
 if [ -n "$env" ]; then
   # shellcheck source=/dev/null
   source "./env/$env/backend.ini"
@@ -181,6 +193,10 @@ case $action in
   summ)
     init_terraform
     tfsummary "$other"
+    ;;
+  apply-state)
+    init_terraform
+    apply_state_action "$other"
     ;;
   update)
     update_script
