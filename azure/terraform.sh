@@ -5,6 +5,8 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
+set -e
+
 vers="1.5"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
@@ -80,16 +82,38 @@ function state_output_taint_actions() {
   terraform $action $other
 }
 
+function parse_tfplan_option() {
+  # Loop over all arguments
+  for arg in "$@"; do
+    # If the argument starts with '-tfplan=', extract the filename
+    if [[ "$arg" =~ ^-tfplan= ]]; then
+      echo "${arg#*=}"
+      return
+    fi
+  done
+}
+
+function remove_tfplan_option() {
+  # Loop over all arguments
+  for arg in "$@"; do
+    # If the argument starts with '-tfplan=', skip it
+    if [[ ! "$arg" =~ ^-tfplan= ]]; then
+      echo "$arg"
+    fi
+  done
+}
+
 function tfsummary() {
+  local plan_file
+  plan_file=$(parse_tfplan_option "$@")
   action="plan"
-  other="-out=tfplan"
-  other_actions
+  other="-out=${plan_file}"
+  other_actions $(remove_tfplan_option "$@")
   if [ -n "$(command -v tf-summarize)" ]; then
-    tf-summarize ${tree} tfplan
+    tf-summarize ${tree} "${plan_file}"
   else
     echo "tf-summarize is not installed"
   fi
-  rm tfplan 2>/dev/null
 }
 
 function update_script() {
