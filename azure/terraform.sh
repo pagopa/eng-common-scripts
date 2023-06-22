@@ -5,8 +5,6 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-set -e
-
 vers="1.5"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
@@ -31,8 +29,7 @@ function help_usage() {
   echo "  help          This help"
   echo "  list          List every environment available"
   echo "  update        Update this script if possible"
-  echo "  summ          Generate a summary of Terraform plan"
-  echo "  summtable     Generate a summary table of Terraform plan"
+  echo "  summ          Generate summary of Terraform plan"
   echo "  *             any terraform option"
 }
 
@@ -82,7 +79,7 @@ function state_output_taint_actions() {
   terraform $action $other
 }
 
-function parse_and_remove_tfplan_option() {
+function parse_tfplan_option() {
   # Creare array per contenere gli argomenti che non iniziano con '-tfplan='
   local other_args=()
 
@@ -103,16 +100,23 @@ function parse_and_remove_tfplan_option() {
 
 function tfsummary() {
   local plan_file
-  plan_file=$(parse_and_remove_tfplan_option "$@")
+  plan_file=$(parse_tfplan_option "$@")
+  if [ -z "$plan_file" ]; then
+    plan_file="tfplan"
+  fi
   action="plan"
   other="-out=${plan_file}"
-  other_actions $(parse_and_remove_tfplan_option "$@")
+  other_actions
   if [ -n "$(command -v tf-summarize)" ]; then
-    tf-summarize ${tree} "${plan_file}"
+    tf-summarize -separate-tree "${plan_file}"
   else
     echo "tf-summarize non è installato"
   fi
+  if [ "$plan_file" == "tfplan" ]; then
+    rm $plan_file
+  fi
 }
+
 
 function update_script() {
   # Check if the repository was cloned successfully
@@ -192,6 +196,7 @@ case $action in
     help_usage
     ;;
   init)
+    init_terraform
     init_terraform "$other"
     ;;
   list)
@@ -202,12 +207,6 @@ case $action in
     state_output_taint_actions $other
     ;;
   summ)
-    init_terraform
-    tree="-separate-tree"
-    tfsummary "$other"
-    unset tree
-    ;;
-  summtable)
     init_terraform
     tfsummary "$other"
     ;;
