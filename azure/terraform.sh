@@ -80,21 +80,21 @@ function state_output_taint_actions() {
 }
 
 function parse_tfplan_option() {
-  # Creare array per contenere gli argomenti che non iniziano con '-tfplan='
+  # Create an array to contain arguments that do not start with '-tfplan='
   local other_args=()
 
-  # Ciclo su tutti gli argomenti
+  # Loop over all arguments
   for arg in "$@"; do
-    # Se l'argomento inizia con '-tfplan=', estrai il nome del file
+    # If the argument starts with '-tfplan=', extract the file name
     if [[ "$arg" =~ ^-tfplan= ]]; then
       echo "${arg#*=}"
     else
-      # Se l'argomento non inizia con '-tfplan=', aggiungilo all'array other_args
+      # If the argument does not start with '-tfplan=', add it to the other_args array
       other_args+=("$arg")
     fi
   done
 
-  # Stampa tutti gli argomenti in other_args separati da spazi
+  # Print all arguments in other_args separated by spaces
   echo "${other_args[@]}"
 }
 
