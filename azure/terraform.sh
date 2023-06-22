@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.4"
+vers="1.5"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -29,7 +29,8 @@ function help_usage() {
   echo "  help          This help"
   echo "  list          List every environment available"
   echo "  update        Update this script if possible"
-  echo "  summ          Generate summary of Terraform plan"
+  echo "  summ          Generate a summary of Terraform plan"
+  echo "  summtable     Generate a summary table of Terraform plan"
   echo "  *             any terraform option"
 }
 
@@ -84,10 +85,11 @@ function tfsummary() {
   other="-out=tfplan"
   other_actions
   if [ -n "$(command -v tf-summarize)" ]; then
-    tf-summarize -separate-tree tfplan && rm tfplan
+    tf-summarize ${tree} tfplan
   else
     echo "tf-summarize is not installed"
   fi
+  rm tfplan 2>/dev/null
 }
 
 function update_script() {
@@ -164,11 +166,10 @@ case $action in
   clean)
     clean_environment
     ;;
-  ?|help)
+  ?|help|-h)
     help_usage
     ;;
   init)
-    init_terraform
     init_terraform "$other"
     ;;
   list)
@@ -179,6 +180,12 @@ case $action in
     state_output_taint_actions $other
     ;;
   summ)
+    init_terraform
+    tree="-separate-tree"
+    tfsummary "$other"
+    unset tree
+    ;;
+  summtable)
     init_terraform
     tfsummary "$other"
     ;;
