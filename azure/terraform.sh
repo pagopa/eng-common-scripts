@@ -82,37 +82,35 @@ function state_output_taint_actions() {
   terraform $action $other
 }
 
-function parse_tfplan_option() {
-  # Loop over all arguments
+function parse_and_remove_tfplan_option() {
+  # Creare array per contenere gli argomenti che non iniziano con '-tfplan='
+  local other_args=()
+
+  # Ciclo su tutti gli argomenti
   for arg in "$@"; do
-    # If the argument starts with '-tfplan=', extract the filename
+    # Se l'argomento inizia con '-tfplan=', estrai il nome del file
     if [[ "$arg" =~ ^-tfplan= ]]; then
       echo "${arg#*=}"
-      return
+    else
+      # Se l'argomento non inizia con '-tfplan=', aggiungilo all'array other_args
+      other_args+=("$arg")
     fi
   done
-}
 
-function remove_tfplan_option() {
-  # Loop over all arguments
-  for arg in "$@"; do
-    # If the argument starts with '-tfplan=', skip it
-    if [[ ! "$arg" =~ ^-tfplan= ]]; then
-      echo "$arg"
-    fi
-  done
+  # Stampa tutti gli argomenti in other_args separati da spazi
+  echo "${other_args[@]}"
 }
 
 function tfsummary() {
   local plan_file
-  plan_file=$(parse_tfplan_option "$@")
+  plan_file=$(parse_and_remove_tfplan_option "$@")
   action="plan"
   other="-out=${plan_file}"
-  other_actions $(remove_tfplan_option "$@")
+  other_actions $(parse_and_remove_tfplan_option "$@")
   if [ -n "$(command -v tf-summarize)" ]; then
     tf-summarize ${tree} "${plan_file}"
   else
-    echo "tf-summarize is not installed"
+    echo "tf-summarize non è installato"
   fi
 }
 
