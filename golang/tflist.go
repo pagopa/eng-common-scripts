@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/fatih/color"
@@ -33,14 +32,7 @@ func splitIgnoringQuotes(s, sep string) []string {
 }
 
 func main() {
-	cmd := exec.Command("terraform", "state", "list")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	cmd.Start()
+	hasInput := false
 
 	colors := []*color.Color{
 		color.New(color.FgRed),
@@ -51,7 +43,7 @@ func main() {
 		color.New(color.FgCyan),
 	}
 
-	scanner := bufio.NewScanner(stdout)
+	scanner := bufio.NewScanner(os.Stdin)
 	prevParts := []string{}
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -62,7 +54,11 @@ func main() {
 			fmt.Println(indent + coloredPart)
 		}
 		prevParts = parts
+		hasInput = true
 	}
 
-	cmd.Wait()
+	if !hasInput {
+		fmt.Fprintln(os.Stderr, "No input provided.")
+		os.Exit(1)
+	}
 }
