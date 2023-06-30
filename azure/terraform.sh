@@ -108,7 +108,7 @@ function tfsummary() {
   other="-out=${plan_file}"
   other_actions
   if [ -n "$(command -v tf-summarize)" ]; then
-    tf-summarize -separate-tree "${plan_file}"
+    tf-summarize -tree "${plan_file}"
   else
     echo "tf-summarize non è installato"
   fi
