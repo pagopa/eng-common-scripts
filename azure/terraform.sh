@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.6"
+vers="1.7"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -15,6 +15,24 @@ function clean_environment() {
   rm -rf .terraform
   rm tfplan 2>/dev/null
   echo "cleaned!"
+}
+
+function download_tool() {
+  tool=$1
+  git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/golang/${tool}"
+  if ! command -v $tool &> /dev/null; then
+    if ! curl -sL "$git_repo" -o "$tool"; then
+      echo "Error downloading ${tool}"
+      return 1
+    else
+      chmod +x $tool
+      echo "${tool} downloaded! Please note this tool WON'T be copied in your **/bin folder for safety reasons. 
+You need to do it yourself!"
+      read -p "Press enter to continue"
+
+
+    fi
+  fi
 }
 
 function help_usage() {
@@ -30,6 +48,7 @@ function help_usage() {
   echo "  list          List every environment available"
   echo "  update        Update this script if possible"
   echo "  summ          Generate summary of Terraform plan"
+  echo "  tflist        Generate an improved output of terraform state list"
   echo "  *             any terraform option"
 }
 
@@ -76,7 +95,17 @@ function other_actions() {
 }
 
 function state_output_taint_actions() {
-  terraform $action $other
+  if [ "$action" == "tflist" ]; then
+    download_tool "tflist"
+    if [ $? -eq 0 ]; then
+      terraform state list | ./tflist
+    else
+      echo "it was not possible to install tflist!!"
+      exit 1
+    fi
+  else
+    terraform $action $other
+  fi
 }
 
 function parse_tfplan_option() {
@@ -110,13 +139,12 @@ function tfsummary() {
   if [ -n "$(command -v tf-summarize)" ]; then
     tf-summarize -tree "${plan_file}"
   else
-    echo "tf-summarize non è installato"
+    echo "tf-summarize is not installed"
   fi
   if [ "$plan_file" == "tfplan" ]; then
     rm $plan_file
   fi
 }
-
 
 function update_script() {
   # Check if the repository was cloned successfully
@@ -196,13 +224,12 @@ case $action in
     help_usage
     ;;
   init)
-    init_terraform
     init_terraform "$other"
     ;;
   list)
     list_env
     ;;
-  output|state|taint)
+  output|state|taint|tflist)
     init_terraform
     state_output_taint_actions $other
     ;;
