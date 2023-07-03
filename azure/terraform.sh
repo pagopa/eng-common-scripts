@@ -96,7 +96,10 @@ function other_actions() {
 
 function state_output_taint_actions() {
   if [ "$action" == "tflist" ]; then
-    download_tool "tflist"
+    if [ ! -n "$(command -v tflist)" ] && [ ! -f "tflist" ]; then
+      download_tool "tflist"
+    fi
+    
     if [ $? -eq 0 ]; then
       terraform state list | ./tflist
     else
