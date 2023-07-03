@@ -96,20 +96,27 @@ function other_actions() {
 
 function state_output_taint_actions() {
   if [ "$action" == "tflist" ]; then
-    if [ ! -n "$(command -v tflist)" ] && [ ! -f "tflist" ]; then
+    # If 'tflist' is not installed globally and there is no 'tflist' file in the current directory,
+    # attempt to download the 'tflist' tool
+    if ! command -v tflist &> /dev/null && [ ! -f "tflist" ]; then
       download_tool "tflist"
+      if [ $? -ne 0 ]; then
+        echo "Error: Failed to download 'tflist'!!"
+        exit 1
+      else
+        echo "tflist installed!"
+      fi
     fi
-    
-    if [ $? -eq 0 ]; then
-      terraform state list | ./tflist
+    if command -v tflist &> /dev/null; then
+      terraform state list | tflist
     else
-      echo "it was not possible to install tflist!!"
-      exit 1
+      terraform state list | ./tflist
     fi
   else
     terraform $action $other
   fi
 }
+
 
 function parse_tfplan_option() {
   # Create an array to contain arguments that do not start with '-tfplan='
