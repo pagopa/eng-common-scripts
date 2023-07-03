@@ -43,17 +43,21 @@ func main() {
 		color.New(color.FgCyan),
 	}
 
+	printed := make(map[string]bool)
+
 	scanner := bufio.NewScanner(os.Stdin)
-	prevParts := []string{}
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := splitIgnoringQuotes(line, ".")
-		for i := 0; i < len(parts) && (i >= len(prevParts) || parts[i] != prevParts[i]); i++ {
-			indent := strings.Repeat("|       ", i)
-			coloredPart := colors[i%len(colors)].SprintFunc()("|---" + parts[i])
-			fmt.Println(indent + coloredPart)
+		for i := 0; i < len(parts); i++ {
+			prefix := strings.Join(parts[:i+1], ".")
+			if !printed[prefix] {
+				indent := strings.Repeat("|       ", i)
+				coloredPart := colors[i%len(colors)].SprintFunc()("|---" + parts[i])
+				fmt.Println(indent + coloredPart)
+				printed[prefix] = true
+			}
 		}
-		prevParts = parts
 		hasInput = true
 	}
 
