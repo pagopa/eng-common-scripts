@@ -104,7 +104,7 @@ function state_output_taint_actions() {
         echo "Error: Failed to download tflist!!"
         exit 1
       else
-        echo "tflist installed!"
+        echo "tflist downloaded!"
       fi
     fi
     if command -v tflist &> /dev/null; then
