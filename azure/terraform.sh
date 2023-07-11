@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.7"
+vers="1.8"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -49,6 +49,7 @@ function help_usage() {
   echo "  update        Update this script if possible"
   echo "  summ          Generate summary of Terraform plan"
   echo "  tflist        Generate an improved output of terraform state list"
+  echo "  tlock         Generate or update the dependency lock file"
   echo "  *             any terraform option"
 }
 
@@ -246,6 +247,9 @@ case $action in
   summ)
     init_terraform
     tfsummary "$other"
+    ;;
+  tlock)
+    terraform providers lock -platform=windows_amd64 -platform=darwin_amd64 -platform=darwin_arm64 -platform=linux_amd64
     ;;
   update)
     update_script
