@@ -75,7 +75,7 @@ function extract_resources() {
 
   rm $TMP_FILE
 
-  echo "./terraform.sh apply $ENV $TARGETS"
+  echo "./terraform.sh $action $ENV $TARGETS"
 }
 
 function help_usage() {
