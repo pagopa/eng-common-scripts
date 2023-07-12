@@ -5,10 +5,16 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.8"
+vers="1.9"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
+# Check if the third parameter exists and is a file
+if [ -n "$3" ] && [ -f "$3" ]; then
+  FILE_ACTION=true
+else
+  FILE_ACTION=false
+fi
 
 # Define functions
 function clean_environment() {
@@ -33,6 +39,43 @@ You need to do it yourself!"
 
     fi
   fi
+}
+
+function extract_resources() {
+  TF_FILE=$1
+  ENV=$2
+  TARGETS=""
+
+  # Check if the file exists
+  if [ ! -f "$TF_FILE" ]; then
+      echo "File $TF_FILE does not exist."
+      exit 1
+  fi
+
+  # Check if the directory exists
+  if [ ! -d "./env/$ENV" ]; then
+      echo "Directory ./env/$ENV does not exist."
+      exit 1
+  fi
+
+  TMP_FILE=$(mktemp)
+  grep -E '^resource|^module' $TF_FILE > $TMP_FILE
+
+  while read -r line ; do
+      TYPE=$(echo $line | cut -d '"' -f 1 | tr -d ' ')
+      if [ "$TYPE" == "module" ]; then
+          NAME=$(echo $line | cut -d '"' -f 2)
+          TARGETS+=" -target=\"$TYPE.$NAME\""
+      else
+          NAME1=$(echo $line | cut -d '"' -f 2)
+          NAME2=$(echo $line | cut -d '"' -f 4)
+          TARGETS+=" -target=\"$NAME1.$NAME2\""
+      fi   
+  done < $TMP_FILE
+
+  rm $TMP_FILE
+
+  echo "./terraform.sh apply $ENV $TARGETS"
 }
 
 function help_usage() {
@@ -213,6 +256,7 @@ fi
 # Parse arguments
 action=$1
 env=$2
+filetf=$3
 shift 2
 other=$@
 
@@ -255,7 +299,11 @@ case $action in
     update_script
     ;;
   *)
-    init_terraform
-    other_actions "$other"
+    if [ "$FILE_ACTION" = true ]; then
+      extract_resources "$filetf" "$env"
+    else
+      init_terraform
+      other_actions "$other"
+    fi
     ;;
 esac
