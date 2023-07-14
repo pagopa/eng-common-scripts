@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.9"
+vers="1.10"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -24,6 +24,21 @@ function clean_environment() {
 }
 
 function download_tool() {
+  #default value
+  cpu_type="intel"
+  os_type=$(uname)
+
+  # only on MacOS
+  if [ "$os_type" == "Darwin" ]; then
+    cpu_brand=$(sysctl -n machdep.cpu.brand_string)
+    if grep -q -i "intel" <<< "$cpu_brand"; then
+      cpu_type="intel"
+    else
+      cpu_type="arm"
+    fi
+  fi
+
+  echo $cpu_type
   tool=$1
   git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/golang/${tool}"
   if ! command -v $tool &> /dev/null; then
