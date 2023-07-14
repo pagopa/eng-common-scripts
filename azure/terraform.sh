@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.10"
+vers="1.11"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -40,7 +40,7 @@ function download_tool() {
 
   echo $cpu_type
   tool=$1
-  git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/golang/${tool}"
+  git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/golang/${tool}_${cpu_type}"
   if ! command -v $tool &> /dev/null; then
     if ! curl -sL "$git_repo" -o "$tool"; then
       echo "Error downloading ${tool}"
