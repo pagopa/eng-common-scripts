@@ -24,12 +24,18 @@ function clean_environment() {
 }
 
 function download_tool() {
+  #default value
+  cpu_type="intel"
+  os_type=$(uname)
 
-  cpu_brand=$(sysctl -n machdep.cpu.brand_string)
-  if grep -q -i "intel" <<< "$cpu_brand"; then
-    cpu_type="intel"
-  else
-    cpu_type="arm"
+  # only on MacOS
+  if [ "$os_type" == "Darwin" ]; then
+    cpu_brand=$(sysctl -n machdep.cpu.brand_string)
+    if grep -q -i "intel" <<< "$cpu_brand"; then
+      cpu_type="intel"
+    else
+      cpu_type="arm"
+    fi
   fi
 
   echo $cpu_type
