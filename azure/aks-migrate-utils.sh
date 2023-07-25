@@ -18,7 +18,7 @@ n_name=$(echo "$node_pool_info" | jq -r '.name')
 n_size=$(echo "$node_pool_info" | jq -r '.size')
 n_count=$(echo "$node_pool_info" | jq -r '.count')
 n_sub_id=$(echo "$node_pool_info" | jq -r '.id' | cut -d '/' -f 3)
-n_zones=$(echo "$node_pool_info" | jq -r '.zones[]' | tr '\n' ' ' |  xargs )
+n_zones=$(echo "$node_pool_info" | jq -r '.zones[]' | tr '\n' ' ' |  xargs | sed 's/ /, /g ' )
 
 n_name_new="${n_name}mig"
 
