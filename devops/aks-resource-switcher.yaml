@@ -1,0 +1,108 @@
+trigger: none
+pr: none
+
+variables:
+  #common
+  TIME_OUT: 10
+  ACTION: '$(TF_ACTION)'
+  AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_NAME)'
+  AZURE_DEVOPS_POOL_AGENT_NAME: '$(TF_AZURE_DEVOPS_POOL_AGENT_NAME)'
+  # aks
+  CLUSTER_NAME: '$(TF_CLUSTER_NAME)'
+  USER_NODE_COUNT_MIN: '$(TF_USER_NODE_COUNT_MIN)'
+  USER_NODE_COUNT_MAX: '$(TF_USER_NODE_COUNT_MAX)'
+  SYSTEM_NODE_COUNT_MIN: '$(TF_SYSTEM_NODE_COUNT_MIN)'
+  SYSTEM_NODE_COUNT_MAX: '$(TF_SYSTEM_NODE_COUNT_MAX)'
+  CLUSTER_RG: '$(TF_CLUSTER_RG)'
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+
+stages:
+  - stage: 'aks_switcher'
+    displayName: '⏯️️ Resource Switcher AKS Node Pool'
+    condition: succeeded()
+    pool:
+      name: ${{variables.AZURE_DEVOPS_POOL_AGENT_NAME}}
+    jobs:
+      - job: "aks_nodepool_switcher"
+        displayName: "Switcher AKS Node Pool"
+        timeoutInMinutes: ${{ variables.TIME_OUT }}
+        steps:
+          - task: AzureCLI@2
+            displayName: "⏯️ Trigger AKS Node Pool resource switcher with action ${{ variables.ACTION }}"
+            inputs:
+              azureSubscription: '${{ variables.AZURE_SERVICE_CONNECTION_NAME }}'
+              addSpnToEnvironment: true
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              failOnStandardError: true
+              inlineScript: |
+                #### functions 
+                
+                function scale_up() {
+                  pools=$1
+                  min_count=$2
+                  max_count=$3
+                  while IFS= read -r line; do
+                    echo "⬆️ INFO Scaling up node pool: $line"
+                    autoscaling_enabled=$(az aks nodepool show --cluster-name ${{ variables.CLUSTER_NAME }} -n $line -g ${{ variables.CLUSTER_RG }} | jq -r '.enableAutoScaling')
+                    if [ "$autoscaling_enabled" == "true" ]
+                    then
+                      echo "⚠️  WARN  autoscaling already enabled on $line. updating counts"
+                      scale_up=$(az aks nodepool update --update-cluster-autoscaler --cluster-name ${{ variables.CLUSTER_NAME }} -n $line -g ${{ variables.CLUSTER_RG }} --max-count $max_count --min-count $min_count)
+                    else
+                      scale_up=$(az aks nodepool update --enable-cluster-autoscaler --cluster-name ${{ variables.CLUSTER_NAME }} -n $line -g ${{ variables.CLUSTER_RG }} --max-count $max_count --min-count $min_count)
+                    fi
+                    
+                  done <<< "$pools"
+                }
+                
+                function scale_down(){
+                  pools=$1
+                  count=$2
+                  while IFS= read -r line; do
+                    echo "⬇️ INFO Scaling down node pool: $line"
+                    cluster_status=$(az aks nodepool show --cluster-name ${{ variables.CLUSTER_NAME }} -n $line -g ${{ variables.CLUSTER_RG }}) 
+                    autoscaling_enabled=$(echo "$cluster_status" | jq -r '.enableAutoScaling')
+                    current_node_count=$(echo "$cluster_status" | jq -r '.count')
+                    if [ "$autoscaling_enabled" == "false" ]
+                    then
+                      echo "⚠️ WARN  autoscaling already disabled on $line. updating count"
+                    else
+                      disable_as=$(az aks nodepool update --cluster-name ${{ variables.CLUSTER_NAME }} -n $line -g ${{ variables.CLUSTER_RG }} --disable-cluster-autoscaler)
+                    fi
+                
+                    if [ "$current_node_count" == ${{ variables.USER_NODE_COUNT_MIN }} ]
+                    then
+                      echo "ℹ️ Target node count already set. skipping..."
+                    else
+                      scale_down=$(az aks nodepool scale --cluster-name ${{ variables.CLUSTER_NAME }} -n $line -g ${{ variables.CLUSTER_RG }} -c $count)
+                    fi
+                    
+                  done <<< "$pools"
+                
+                }
+                
+                #### logics
+                
+                echo "💈 scaling resources in ${{ variables.CLUSTER_NAME }}"
+                
+                clusters=$(az aks nodepool list --cluster-name ${{ variables.CLUSTER_NAME }} --resource-group ${{ variables.CLUSTER_RG }} | jq '.[] | {name: .name, mode: .mode}')
+                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | .name')
+                system_pools=$(echo "$clusters" | jq -r 'select(.mode == "System") | .name')
+                
+                if [ "${{ variables.ACTION }}" == "start" ]
+                then
+                  echo "🟢 SCALE UP"
+                  scale_up "$user_pools" ${{ variables.USER_NODE_COUNT_MIN }} ${{ variables.USER_NODE_COUNT_MAX }}
+                  scale_up "$system_pools" ${{ variables.SYSTEM_NODE_COUNT_MIN }} ${{ variables.SYSTEM_NODE_COUNT_MAX }}
+                else
+                  echo "🟠 SCALE DOWN"
+                  scale_down "$user_pools" ${{ variables.USER_NODE_COUNT_MIN }}
+                  scale_down "$system_pools" ${{ variables.SYSTEM_NODE_COUNT_MIN }}
+                fi
+                echo "✅ All done!"
+
