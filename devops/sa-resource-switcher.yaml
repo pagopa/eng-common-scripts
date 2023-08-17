@@ -1,0 +1,51 @@
+trigger: none
+pr: none
+
+variables:
+  #common
+  TIME_OUT: 10
+  ACTION: '$(TF_ACTION)'
+  AZURE_SERVICE_CONNECTION_NAME: '$(TF_AZURE_SERVICE_CONNECTION_NAME)'
+  AZURE_DEVOPS_POOL_AGENT_NAME: '$(TF_AZURE_DEVOPS_POOL_AGENT_NAME)'
+  # storage account
+  SA_NAME: '$(TF_SA_NAME)'
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+  
+
+
+stages:
+    - stage: 'sa_switcher'
+      displayName: '⏯️️ Resource Switcher Storage Account SFTP'
+      condition: succeeded()
+      pool:
+        name: ${{variables.AZURE_DEVOPS_POOL_AGENT_NAME}}
+      jobs:
+        - job: "sa_sftp_switcher"
+          displayName: "SA SFTP switcher"
+          timeoutInMinutes: ${{ variables.TIME_OUT }}
+          steps:
+            - task: AzureCLI@2
+              displayName: "⏯️ Trigger SA SFTP switcher with action ${{ variables.ACTION }}"
+              inputs:
+                azureSubscription: '${{ variables.AZURE_SERVICE_CONNECTION_NAME }}'
+                addSpnToEnvironment: true
+                scriptType: 'bash'
+                scriptLocation: 'inlineScript'
+                failOnStandardError: true
+                inlineScript: |
+                  
+                  if [ "${{ variables.ACTION }}" == "start" ]
+                  then
+                    echo "🟢 SWITCH ON"
+                    az storage account update --name ${{ variables.SA_NAME}} --enable-sftp true
+  
+                    
+                  else
+                    echo "🟠 SWITCH OFF"
+                    az storage account update --name ${{ variables.SA_NAME}} --enable-sftp false
+                  fi
+                  echo "✅ All done!"
+  
