@@ -29,7 +29,7 @@ stages:
     jobs:
       - job: "aks_nodepool_switcher"
         displayName: "Switcher AKS Node Pool"
-        timeoutInMinutes: ${{ variables.TIME_OUT }}
+        timeoutInMinutes: $(TIME_OUT)
         steps:
           - task: AzureCLI@2
             displayName: "⏯️ Trigger AKS Node Pool resource switcher with action ${{ variables.ACTION }}"
