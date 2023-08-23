@@ -92,7 +92,7 @@ stages:
                 echo "💈 scaling resources in ${{ variables.CLUSTER_NAME }}"
                 
                 clusters=$(az aks nodepool list --cluster-name ${{ variables.CLUSTER_NAME }} --resource-group ${{ variables.CLUSTER_RG }} | jq '.[] | {name: .name, mode: .mode}')
-                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | select( all ( .name ; contains( ${{ variables.NODEPOOL_EXCLUSIONS }} ) | not ) ) | .name ')
+                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | select( .name as $name | ${{ variables.NODEPOOL_EXCLUSIONS }} | index($name) ) | .name ')
                 echo "user pool cleaned: $user_pools"
                 system_pools=$(echo "$clusters" | jq -r 'select(.mode == "System") | .name')
                 
