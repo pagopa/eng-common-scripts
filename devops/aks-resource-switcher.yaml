@@ -90,11 +90,11 @@ stages:
                 #### logics
                 
                 echo "💈 scaling resources in ${{ variables.CLUSTER_NAME }}"
-                echo "node pool exclusions: ${{ variables.NODEPOOL_EXCLUSIONS }}"
+                echo "Not scaling node pools (excluded): ${{ variables.NODEPOOL_EXCLUSIONS }}"
+                
                 clusters=$(az aks nodepool list --cluster-name ${{ variables.CLUSTER_NAME }} --resource-group ${{ variables.CLUSTER_RG }} | jq '.[] | {name: .name, mode: .mode}')
-                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | select( .name as $name | ${{ variables.NODEPOOL_EXCLUSIONS }} | index($name) | not ) | .name ')
-                echo "user pool cleaned: $user_pools"
-                system_pools=$(echo "$clusters" | jq -r 'select(.mode == "System") | .name')
+                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | select( .name as $name | ${{ variables.NODEPOOL_EXCLUSIONS }} | index($name) | not ) | .name')
+                system_pools=$(echo "$clusters" | jq -r 'select(.mode == "System") | select( .name as $name | ${{ variables.NODEPOOL_EXCLUSIONS }} | index($name) | not ) | .name')
                 
                 if [ "${{ variables.ACTION }}" == "start" ]
                 then
