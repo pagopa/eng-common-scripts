@@ -14,6 +14,7 @@ variables:
   SYSTEM_NODE_COUNT_MIN: '$(TF_SYSTEM_NODE_COUNT_MIN)'
   SYSTEM_NODE_COUNT_MAX: '$(TF_SYSTEM_NODE_COUNT_MAX)'
   CLUSTER_RG: '$(TF_CLUSTER_RG)'
+  NODEPOOL_EXCLUSIONS: '$(TF_NODE_POOL_EXCLUSIONS)'
 
 
 pool:
@@ -89,10 +90,11 @@ stages:
                 #### logics
                 
                 echo "💈 scaling resources in ${{ variables.CLUSTER_NAME }}"
+                echo "Not scaling node pools (excluded): ${{ variables.NODEPOOL_EXCLUSIONS }}"
                 
                 clusters=$(az aks nodepool list --cluster-name ${{ variables.CLUSTER_NAME }} --resource-group ${{ variables.CLUSTER_RG }} | jq '.[] | {name: .name, mode: .mode}')
-                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | .name')
-                system_pools=$(echo "$clusters" | jq -r 'select(.mode == "System") | .name')
+                user_pools=$(echo "$clusters" | jq -r 'select(.mode == "User") | select( .name as $name | ${{ variables.NODEPOOL_EXCLUSIONS }} | index($name) | not ) | .name')
+                system_pools=$(echo "$clusters" | jq -r 'select(.mode == "System") | select( .name as $name | ${{ variables.NODEPOOL_EXCLUSIONS }} | index($name) | not ) | .name')
                 
                 if [ "${{ variables.ACTION }}" == "start" ]
                 then
