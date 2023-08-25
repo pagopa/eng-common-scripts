@@ -49,6 +49,7 @@ stages:
                   min_count=$2
                   max_count=$3
                   force=$4
+                  echo "scale up parameters [pools: $pools, min_count: $min_count, max_count: $max_count, force: $force]"
                   while IFS= read -r line; do
                     echo "⬆️ INFO Scaling up node pool: $line"
                     if [ "$force" == "true" ]
@@ -73,6 +74,7 @@ stages:
                   pools=$1
                   count=$2
                   force=$3
+                  echo "scale down parameters [pools: $pools, count: $count, force: $force]"
                   while IFS= read -r line; do
                     echo "⬇️ INFO Scaling down node pool: $line"
                     if [ "$force" == "true" ]
@@ -116,13 +118,13 @@ stages:
                   echo "🟢 SCALE UP"
                   scale_up "$user_pools" ${{ variables.USER_NODE_COUNT_MIN }} ${{ variables.USER_NODE_COUNT_MAX }} ${{ variables.USE_FORCE }}
                   # system pools can't be stopped. so they do not require a restart
-                  scale_up "$system_pools" ${{ variables.SYSTEM_NODE_COUNT_MIN }} ${{ variables.SYSTEM_NODE_COUNT_MAX }}
+                  scale_up "$system_pools" ${{ variables.SYSTEM_NODE_COUNT_MIN }} ${{ variables.SYSTEM_NODE_COUNT_MAX }} "false"
                 else
                   echo "🟠 SCALE DOWN"
                   scale_down "$user_pools" ${{ variables.USER_NODE_COUNT_MIN }} ${{ variables.USE_FORCE }}
                   # system pools can't be stopped 
                   # https://learn.microsoft.com/en-us/azure/aks/start-stop-nodepools
-                  scale_down "$system_pools" ${{ variables.SYSTEM_NODE_COUNT_MIN }}
+                  scale_down "$system_pools" ${{ variables.SYSTEM_NODE_COUNT_MIN }} "false"
                 fi
                 echo "✅ All done!"
 
