@@ -19,16 +19,16 @@ az feature register --namespace "Microsoft.ContainerService" --name "EnablePodId
 
 while true; do
     result_encryption=$(az feature show --namespace Microsoft.Compute --name EncryptionAtHost | jq -r .properties.state)
-    result_pod_identity=$(az feature show --namespace Microsoft.Compute --name EncryptionAtHost | jq -r .properties.state)
-    
+    result_pod_identity=$(az feature show --namespace Microsoft.ContainerService --name EnablePodIdentityPreview | jq -r .properties.state)
+
     if [ "$result_encryption" == "Registered" ] && [ "$result_pod_identity" == "Registered" ]; then
         echo "[INFO] Feature enabled"
         break
     else
         echo "[INFO] Awaiting feature registration"
-        sleep 20
+        sleep 60
     fi
 done
 
-az provider register -n Microsoft.Compute
-az provider register -n Microsoft.ContainerService
+az provider register -n Microsoft.Compute --wait
+az provider register -n Microsoft.ContainerService --wait

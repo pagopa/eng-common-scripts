@@ -32,7 +32,7 @@ echo "[INFO] STORAGE_ACCOUNT_NAME: ${STORAGE_ACCOUNT_NAME}"
 echo "[INFO] STORAGE_ACCOUNT_CONTAINERS: ${STORAGE_ACCOUNT_CONTAINERS}"
 
 az account set -s "${SUBSCRIPTION}"
-az provider register -n 'Microsoft.Storage'
+az provider register -n 'Microsoft.Storage' --wait
 
 # Create RESOURCE_GROUP if not exixts
 if [ "$(az group exists --name ${RESOURCE_GROUP_NAME})" = false ]; then
