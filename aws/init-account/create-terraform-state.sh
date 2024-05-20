@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-AWS_PROFILE=$1
+export AWS_PROFILE=$1
 REGION="eu-south-1"
 RANDOM_STRING=$(date +%s)
 S3_BUCKET_NAME="terraform-state-${RANDOM_STRING}"
