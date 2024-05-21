@@ -1,0 +1,15 @@
+{
+    "Rules": [
+        {
+            "ID": "Lifecycle NoncurrentVersionExpiration rule",
+            "Status": "Enabled",
+            "Filter": {
+                  "Prefix": "/"
+                },
+            "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 90,
+                "NewerNoncurrentVersions": 50
+            }
+        }
+    ]
+  }
