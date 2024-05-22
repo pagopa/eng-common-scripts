@@ -30,5 +30,5 @@ while true; do
     fi
 done
 
-az provider register -n Microsoft.Compute --wait
-az provider register -n Microsoft.ContainerService --wait
+az provider register -n Microsoft.Compute
+az provider register -n Microsoft.ContainerService
