@@ -1,11 +1,11 @@
 #!/bin/bash
 ############################################################
 # Terraform script for managing infrastructure on Azure
-# Fingerprint: d2hhdHlvdXdhbnQ/Cg==
+# md5: 065397c756f4c6a1ba29f44d1e00ef74
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="1.11"
+vers="1.12"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -47,7 +47,7 @@ function download_tool() {
       return 1
     else
       chmod +x $tool
-      echo "${tool} downloaded! Please note this tool WON'T be copied in your **/bin folder for safety reasons. 
+      echo "${tool} downloaded! Please note this tool WON'T be copied in your **/bin folder for safety reasons.
 You need to do it yourself!"
       read -p "Press enter to continue"
 
@@ -85,7 +85,7 @@ function extract_resources() {
           NAME1=$(echo $line | cut -d '"' -f 2)
           NAME2=$(echo $line | cut -d '"' -f 4)
           TARGETS+=" -target=\"$NAME1.$NAME2\""
-      fi   
+      fi
   done < $TMP_FILE
 
   rm $TMP_FILE
@@ -283,6 +283,7 @@ if [ -n "$env" ]; then
     exit 1
   fi
   az account set -s "${subscription}"
+  export ARM_SUBSCRIPTION_ID=$(az account list --query "[?isDefault].id" --output tsv)
 fi
 
 # Call appropriate function based on action
