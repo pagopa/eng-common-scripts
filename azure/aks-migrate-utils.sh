@@ -154,12 +154,14 @@ process_node_pools() {
         current_node_count=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .count')
         current_zones=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .zones[]' | tr '\n' ' ' | xargs)
         current_labels=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .labels | to_entries[] | "\(.key)=\(.value)"' | tr '\n' ' ')
+        current_disk_size=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .osDiskSizeGb')
 
         log_debug "Pool details:"
         log_debug "- VM Size: ${current_vm_size}"
         log_debug "- Node Count: ${current_node_count}"
         log_debug "- Zones: ${current_zones}"
         log_debug "- Labels: ${current_labels}"
+        log_debug "- OS disk size: ${current_disk_size}"
 
         print_nodepool_commands \
             "${current_pool_name}" \
@@ -215,7 +217,8 @@ main() {
             zones: .availabilityZones, 
             labels: .nodeLabels,
             mode: .mode,
-            tags: .tags
+            tags: .tags,
+            osDiskSizeGb: .osDiskSizeGb
         }
     ')
 
