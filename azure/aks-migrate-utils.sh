@@ -103,6 +103,7 @@ print_nodepool_commands() {
     local input_node_count="$7"
     local input_zones="$8"
     local input_labels="$9"
+    local os_disk_size="${10}"
 
     echo "-----------------------------------------"
     echo "#### Commands for ${input_pool_name}"
@@ -120,6 +121,7 @@ print_nodepool_commands() {
     echo "  --zones ${input_zones} \\"
     echo "  --max-pods ${MAX_PODS_DEFAULT} \\"
     echo "  --labels ${input_labels} \\"
+    echo "  --node-osdisk-size ${os_disk_size} \\"
     echo "  --os-type ${NODE_POOL_OS_TYPE}"
     echo ""
     echo "NODEPOOL UPDATE (remove taint):"
@@ -154,12 +156,14 @@ process_node_pools() {
         current_node_count=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .count')
         current_zones=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .zones[]' | tr '\n' ' ' | xargs)
         current_labels=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .labels | to_entries[] | "\(.key)=\(.value)"' | tr '\n' ' ')
+        current_disk_size=$(echo "${input_pool_info}" | jq -r --arg pool_name "${current_pool_name}" 'select(.name == $pool_name) | .osDiskSizeGb')
 
         log_debug "Pool details:"
         log_debug "- VM Size: ${current_vm_size}"
         log_debug "- Node Count: ${current_node_count}"
         log_debug "- Zones: ${current_zones}"
         log_debug "- Labels: ${current_labels}"
+        log_debug "- OS disk size: ${current_disk_size}"
 
         print_nodepool_commands \
             "${current_pool_name}" \
@@ -170,7 +174,8 @@ process_node_pools() {
             "${current_vm_size}" \
             "${current_node_count}" \
             "${current_zones}" \
-            "${current_labels}"
+            "${current_labels}" \
+            "$((${current_disk_size} > 250 ? 250 : ${current_disk_size}))"
 
         log_success "Generated commands for node pool: ${current_pool_name}"
     done
@@ -215,7 +220,8 @@ main() {
             zones: .availabilityZones, 
             labels: .nodeLabels,
             mode: .mode,
-            tags: .tags
+            tags: .tags,
+            osDiskSizeGb: .osDiskSizeGb
         }
     ')
 
