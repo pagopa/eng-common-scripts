@@ -120,6 +120,7 @@ print_nodepool_commands() {
     echo "  --zones ${input_zones} \\"
     echo "  --max-pods ${MAX_PODS_DEFAULT} \\"
     echo "  --labels ${input_labels} \\"
+    echo "  --node-osdisk-size 250 \\"
     echo "  --os-type ${NODE_POOL_OS_TYPE}"
     echo ""
     echo "NODEPOOL UPDATE (remove taint):"
