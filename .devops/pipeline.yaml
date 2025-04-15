@@ -1,0 +1,16 @@
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline:
+    source: web.temporal.internal.dev.p4pa.pagopa.it
+    project: p4pa-projects
+    trigger:
+      branches:
+        include:
+        - main
+
+jobs:
+- job: echo
+  steps:
+  - script: echo "TEST"
