@@ -8,10 +8,15 @@ resources:
       branches:
         include: 
         - master
+variables:
+  a: $[ resources.pipeline.renew.pipelineID ]        
 
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: |
-    echo {{resources.pipeline.renew.pipelineID}}
+jobs:
+  - job: A1 
+    steps:
+      - script: |
+          echo $(a)
+          echo $[ resources.pipeline.renew.pipelineID ]
