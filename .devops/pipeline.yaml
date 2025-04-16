@@ -28,5 +28,5 @@ jobs:
 
   - script: |
       echo "Leggo la versione dal file:"
-      VERSION=$(cat $(System.ArtifactsDirectory)/renew/shared-output/version.txt)
+      VERSION=$(cat $(Pipeline.Workspace)/renew/shared-output/version.txt)
       echo "VERSION = $VERSION"
