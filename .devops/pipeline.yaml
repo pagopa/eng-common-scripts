@@ -15,4 +15,4 @@ pool:
 jobs:
 - job: echo
   steps:
-  - script: echo "$( resources.pipeline.renew.force_renew_cert )"
+  - script: echo $(resources.pipeline.renew.force_renew_cert)
