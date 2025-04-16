@@ -7,9 +7,9 @@ resources:
     trigger: 
       branches:
         include: 
-        - master
+        - test-pipeline
 variables:
-  a: $(resources.pipeline.renew.parameters.force_renew_cert)      
+  a: $(resources.pipeline.renew.force_renew_cert)      
 
 pool:
   vmImage: ubuntu-latest
