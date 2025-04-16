@@ -12,7 +12,6 @@ resources:
 pool:
   vmImage: ubuntu-latest
 
-jobs:
-- job: echo
-  steps:
-  - script: echo $(resources.pipeline.renew.force_renew_cert)
+steps:
+- script: |
+    echo $(resources.pipeline.renew.force_renew_cert)
