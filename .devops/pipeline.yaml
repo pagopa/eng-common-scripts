@@ -8,14 +8,17 @@ resources:
       branches:
         include: 
         - test-pipeline
-variables:
-  a: $(resources.pipeline.renew.force_renew_cert)      
-
+  
 pool:
   vmImage: ubuntu-latest
 
 jobs:
-  - job: A1 
-    steps:
-      - script: |
-          echo $(a)
+- job: useOutput
+  steps:
+  - download: renew
+    artifact: shared-output
+
+  - script: |
+      echo "Leggo la versione dal file:"
+      VERSION=$(cat $(Pipeline.Workspace)/pipelineA/shared-output/version.txt)
+      echo "VERSION = $VERSION"
