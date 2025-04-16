@@ -9,7 +9,7 @@ resources:
         include: 
         - master
 variables:
-  a: $[ resources.pipeline.renew.pipelineID ]        
+  a: $(resources.pipeline.renew.pipelineID)      
 
 pool:
   vmImage: ubuntu-latest
@@ -19,4 +19,3 @@ jobs:
     steps:
       - script: |
           echo $(a)
-          echo $[ resources.pipeline.renew.pipelineID ]
