@@ -7,7 +7,6 @@ resources:
     project: p4pa-projects
     trigger:
       branches:
-        include:
         - master
 
 jobs:
