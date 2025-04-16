@@ -2,7 +2,7 @@ trigger: none
 
 resources:
   pipelines:
-  - pipeline:
+  - pipeline: renew
     source: web.temporal.internal.dev.p4pa.pagopa.it
     project: p4pa-projects
     trigger:
