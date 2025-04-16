@@ -4,8 +4,11 @@ resources:
   pipelines:
   - pipeline: renew
     source: web.temporal.internal.dev.p4pa.pagopa.it
-    trigger: true
-
+    trigger: 
+      branches:
+        include: 
+        - master
+        
 pool:
   vmImage: ubuntu-latest
 
