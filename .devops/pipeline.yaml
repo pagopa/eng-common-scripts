@@ -8,11 +8,11 @@ resources:
       branches:
         include: 
         - master
-        
+
 pool:
   vmImage: ubuntu-latest
 
 jobs:
 - job: echo
   steps:
-  - script: echo "TEST"
+  - script: echo "$( resources.pipeline.renew.force_renew_cert )"
