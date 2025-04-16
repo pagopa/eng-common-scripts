@@ -4,10 +4,10 @@ resources:
   pipelines:
   - pipeline: renew
     source: web.temporal.internal.dev.p4pa.pagopa.it
-    project: p4pa-projects
-    trigger:
-      branches:
-        - master
+    trigger: true
+
+pool:
+  vmImage: ubuntu-latest
 
 jobs:
 - job: echo
