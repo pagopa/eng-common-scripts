@@ -15,10 +15,18 @@ pool:
 jobs:
 - job: useOutput
   steps:
-  - download: renew
-    artifact: shared-output
+#  - download: renew
+#    artifact: 
+  - task: DownloadBuildArtifacts@1
+    inputs:
+      buildType: 'specific'
+      pipeline: renew
+      buildVersionToDownload: 'latest'
+      downloadType: 'single'
+      artifactName: 'shared-output'
+      downloadPath: '$(System.ArtifactsDirectory)'
 
   - script: |
       echo "Leggo la versione dal file:"
-      VERSION=$(cat $(Pipeline.Workspace)/renew/shared-output/version.txt)
+      VERSION=$(cat $(System.ArtifactsDirectory)/renew/shared-output/version.txt)
       echo "VERSION = $VERSION"
