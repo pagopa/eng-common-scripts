@@ -56,3 +56,13 @@ jobs:
 
       FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
       echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
+
+  - task: AzureCLI@2
+    name: GetCertificateFromKeyVault
+    inputs:
+      azureSubscription: "P4PA-CORE-D-AZDO-TLS-CERT-KV-POLICY-SERVICE-CONN"
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az keyvault certificate download --vault-name '$(KEY_VAULT_NAME)' -n '$(KEY_VAULT_CERT_NAME)' -f certificate.pem >/dev/null
+        openssl x509 -inform pem -checkend '$(CERT_NAME_EXPIRE_SECONDS)' -noout -in certificate.pem
