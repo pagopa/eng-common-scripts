@@ -64,8 +64,8 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az keyvault secret download --file stable.pfx --encoding base64 -vault-name '$(KEY_VAULT_NAME)' -n '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
-        az keyvault secret download --file current.pfx --encoding base64 -vault-name '$(KEY_VAULT_NAME)' -n '$(KEYVAULT_CERT_NAME)' >/dev/null
+        az keyvault secret download --file stable.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
+        az keyvault secret download --file current.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEYVAULT_CERT_NAME)' >/dev/null
         
         openssl pkcs12 -in stable.pfx -nodes -nokeys -passin pass: -out stable.pem
         openssl pkcs12 -in current.pfx -nodes -nokeys -passin pass: -out current.pem
