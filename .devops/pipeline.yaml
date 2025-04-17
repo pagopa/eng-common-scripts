@@ -13,7 +13,7 @@ pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: Read variable from source pipeline
+- job: ReadVariableFromSourcePipeline
   steps:
   - download: renew
     artifact: force_renew_cert_variable
@@ -52,6 +52,7 @@ jobs:
 
   - script: |
       pip install $(ls -1 certdiff*)
+      certdiff --help
 
       FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
       echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
