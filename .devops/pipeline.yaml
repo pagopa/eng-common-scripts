@@ -13,12 +13,11 @@ pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: useOutput
+- job: Read variable from source pipeline
   steps:
   - download: renew
-    artifact: shared-output
+    artifact: force_renew_cert_variable
 
   - script: |
-      echo "Leggo la versione dal file:"
-      VERSION=$(cat $(Pipeline.Workspace)/renew/shared-output/version.txt)
-      echo "VERSION = $VERSION"
+      FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
+      echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
