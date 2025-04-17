@@ -13,10 +13,10 @@ pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: useOutput
+- job: Read variable from source pipeline
   steps:
   - download: renew
-    artifact: shared-output
+    artifact: force_renew_cert_variable
 
   - task: UsePythonVersion@0
     inputs:
@@ -51,6 +51,9 @@ jobs:
           raise("Unable to download wheel file from repository...")
 
   - script: |
+      FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
+      echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
+
       pip install $(ls -1 certdiff*)
 
   - script: |
