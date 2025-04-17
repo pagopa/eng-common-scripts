@@ -20,7 +20,7 @@ jobs:
   - task: DownloadBuildArtifacts@1
     inputs:
       buildType: 'specific'
-      pipeline: renew
+      pipeline: web.temporal.internal.dev.p4pa.pagopa.it
       project: 'p4pa-projects'
       buildVersionToDownload: 'latest'
       downloadType: 'single'
