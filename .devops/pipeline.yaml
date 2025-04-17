@@ -18,7 +18,42 @@ jobs:
   - download: renew
     artifact: shared-output
 
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.10'
+
   - script: |
-      echo "Leggo la versione dal file:"
-      VERSION=$(cat $(Pipeline.Workspace)/renew/shared-output/version.txt)
+      echo "Installing required packages..."
+      python -m pip install requests
+
+  - task: PythonScript@0
+    inputs:
+      scriptSource: 'inline'
+      script: |
+        import json
+        import requests
+
+        import requests
+        import shutil
+        
+        def download_file(url):
+            local_filename = url.split('/')[-1]
+            with requests.get(url, stream=True) as r:
+                with open(local_filename, 'wb') as f:
+                    shutil.copyfileobj(r.raw, f)
+            return local_filename        
+        
+        response = requests.get("https://api.github.com/repos/pagopa/certdiff/releases/latest")
+        if response.status_code == 200:
+          wheel = response.json()["assets"][0]['browser_download_url']
+          download_file(wheel)
+        else:
+          raise("Unable to download wheel file from repository...")
+
+  - script: |
+      pip install $(ls -1 certdiff*)
+
+  - script: |
+      echo "Reading version from file:"
+      VERSION=$(cat version.txt)
       echo "VERSION = $VERSION"
