@@ -51,12 +51,7 @@ jobs:
           raise("Unable to download wheel file from repository...")
 
   - script: |
-      FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
-      echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
-
       pip install $(ls -1 certdiff*)
 
-  - script: |
-      echo "Reading version from file:"
-      VERSION=$(cat version.txt)
-      echo "VERSION = $VERSION"
+      FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
+      echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
