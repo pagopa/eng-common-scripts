@@ -60,7 +60,7 @@ jobs:
   - task: AzureCLI@2
     name: GetCertificateFromKeyVault
     inputs:
-      azureSubscription: "P4PA-CORE-D-AZDO-TLS-CERT-KV-POLICY-SERVICE-CONN"
+      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
