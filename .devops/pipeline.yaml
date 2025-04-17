@@ -21,6 +21,7 @@ jobs:
     inputs:
       buildType: 'specific'
       pipeline: renew
+      project: 'p4pa-projects'
       buildVersionToDownload: 'latest'
       downloadType: 'single'
       artifactName: 'shared-output'
