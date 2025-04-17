@@ -58,11 +58,24 @@ jobs:
       echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
 
   - task: AzureCLI@2
-    name: GetCertificateFromKeyVault
+    name: GetCertificatesFromKeyVault
     inputs:
       azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az keyvault certificate download --vault-name '$(KEY_VAULT_NAME)' -n '$(KEY_VAULT_CERT_NAME)' -f certificate.pem >/dev/null
-        openssl x509 -inform pem -checkend '$(CERT_NAME_EXPIRE_SECONDS)' -noout -in certificate.pem
+        az keyvault secret download --file stable.pfx --encoding base64 -vault-name '$(KEY_VAULT_NAME)' -n '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
+        az keyvault secret download --file current.pfx --encoding base64 -vault-name '$(KEY_VAULT_NAME)' -n '$(KEYVAULT_CERT_NAME)' >/dev/null
+        
+        openssl pkcs12 -in stable.pfx -nodes -nokeys -passin pass: -out stable.pem
+        openssl pkcs12 -in current.pfx -nodes -nokeys -passin pass: -out current.pem
+        
+        certdiff --verbose --old current.pem --new stable.pem --report-json report.json
+        cat report.json
+        ls -la 
+        
+        
+#        awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="stable" c ".pem"} {if (filename) print > filename}' stable.pem
+#        awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="current" c ".pem"} {if (filename) print > filename}' current.pem
+#
+#        openssl x509 -inform pem -checkend '$(CERT_NAME_EXPIRE_SECONDS)' -noout -in certificate.pem
