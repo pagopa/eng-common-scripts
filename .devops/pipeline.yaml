@@ -15,19 +15,10 @@ pool:
 jobs:
 - job: useOutput
   steps:
-#  - download: renew
-#    artifact: 
-  - task: DownloadBuildArtifacts@1
-    inputs:
-      buildType: 'specific'
-      pipeline: web.temporal.internal.dev.p4pa.pagopa.it
-      project: 'p4pa-projects'
-      buildVersionToDownload: 'latest'
-      downloadType: 'single'
-      artifactName: 'shared-output'
-      downloadPath: '$(System.ArtifactsDirectory)'
+  - download: renew
+    artifact: shared-output
 
   - script: |
       echo "Leggo la versione dal file:"
-      VERSION=$(cat $(System.ArtifactsDirectory)/renew/shared-output/version.txt)
+      VERSION=$(cat $(Pipeline.Workspace)/renew/shared-output/version.txt)
       echo "VERSION = $VERSION"
