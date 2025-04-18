@@ -13,7 +13,7 @@ pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: CertDiff
+- job: GetCert
   steps:
   - download: renew
     artifact: force_renew_cert_variable
@@ -96,12 +96,23 @@ jobs:
           
           cat ${name}.pem ${name}_root.pem > ${name}_chain.pem
         done
-        
+
+- job: CompareCert
+  steps:
+  - task: AzureCLI@2
+    name: CompareCert
+    inputs:
+      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
         certdiff --verbose --old stable_chain.pem --new current_chain.pem --report-json report.json
 
-  - task: PythonMail@1
-    dependsOn: AzureCli@2
-    condition: failed()
+- job: SendMail
+  dependsOn: CompareCert
+  condition: failed()
+  steps:
+  - task: PythonScript@0
     inputs:
       scriptSource: 'inline'
       script: |
@@ -128,7 +139,7 @@ jobs:
         message.attach(MIMEText(body, "plain"))
         
         filename = "current_chain.pem" 
-        
+
         # Open PDF file in binary mode
         with open(filename, "rb") as attachment:
             # Add file as application/octet-stream
