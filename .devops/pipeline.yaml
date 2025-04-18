@@ -77,11 +77,11 @@ jobs:
           # Extract certificates from .pfx (without private keys)
           echo "🔐 Extracting certificates from $name.pfx"
           openssl pkcs12 -in "$name.pfx" -nodes -nokeys -passin pass: -out "$name.pem"
-          
+          ls -la
           # Split multiple certificates into separate file
           echo "📂 Splitting certificates into individual files"                
-          awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="${name}" c ".pem"} {if (filename) print > filename}' $name.pem
-          
+          awk "BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename=\"${name}\" c \".pem\"} {if (filename) print > filename}" "$name.pem"
+          ls -la
           if [[ ! -f "${name}2.pem" ]]; then
               echo "❗ ${name}2.pem not found. Skipping..."
               exit 1
