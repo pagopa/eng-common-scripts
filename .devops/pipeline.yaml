@@ -107,7 +107,8 @@ jobs:
       inlineScript: |
         certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json --verbose
         cat report.json
-        certdiff --old stable_chain.pem --new current_chain.pem | tee output.txt
+        certdiff --old stable_chain.pem --new current_chain.pem > output.txt
+        certdiff --old stable_chain.pem --new current_chain.pem
 
   - task: PythonScript@0
     name: SendMail
