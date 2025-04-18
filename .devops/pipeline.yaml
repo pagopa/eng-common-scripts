@@ -128,7 +128,7 @@ jobs:
         
         certdiff_out = open("output.txt", 'r')
 
-        subject = f"[CertificateIssue] {getenv('KEY_VAULT_CERT_NAME')}: certificate issue detected."
+        subject = f"CertificateIssue - {getenv('KEY_VAULT_CERT_NAME')}: certificate issue detected."
         body = f"""
         This is an email to inform you that on {getenv('KEY_VAULT_CERT_NAME')} there some error with new certificate.
 
