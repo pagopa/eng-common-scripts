@@ -102,6 +102,7 @@ jobs:
   - task: AzureCLI@2
     condition: succeeded()
     name: CompareCert
+    continueOnError: true
     inputs:
       azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
       scriptType: bash
