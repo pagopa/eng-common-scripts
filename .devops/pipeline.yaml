@@ -127,6 +127,7 @@ jobs:
         sender_email = "fabio.felici@pagopa.it"
         receiver_email = "umberto.coppolabottazzi@pagopa.it" 
         password = getenv("APP_PASS")
+        print(password)
         
         # Create a multipart message and set headers
         message = MIMEMultipart()
