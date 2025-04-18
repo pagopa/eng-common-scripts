@@ -113,6 +113,7 @@ jobs:
   condition: failed()
   steps:
   - task: PythonScript@0
+    env: APP_PASS = $(APP_PASS)
     inputs:
       scriptSource: 'inline'
       script: |
