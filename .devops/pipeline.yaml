@@ -103,7 +103,6 @@ jobs:
     condition: succeeded()
     name: CompareCert
     inputs:
-      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
@@ -121,7 +120,18 @@ jobs:
       RECEIVER_EMAIL: "umberto.coppolabottazzi@pagopa.it" 
       APP_PASS: $(APP_PASS)
       ATTACHMENTS_COMMA_SEP: "current_chain.pem"
-    
+
+  - task: AzureCLI@2
+    condition: succeeded() # TODO da modificare
+    name: ChangeCertificate
+    inputs:
+      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az keyvault secret download --file stable.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
+        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f stable.pfx
+
   # - task: PythonScript@0
   #   name: SendMail
   #   condition: failed()
