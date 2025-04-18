@@ -78,6 +78,7 @@ jobs:
           # Extract certificates from .pfx (without private keys)
           echo "🔐 Extracting certificates from $name.pfx"
           openssl pkcs12 -in "$name.pfx" -nodes -nokeys -passin pass: -out "$name.pem" | awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' > "$name.pem"
+          awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' $name.pem > "$name.pem"
           
           # Split multiple certificates into separate file
           echo "📂 Splitting certificates into individual files"                
