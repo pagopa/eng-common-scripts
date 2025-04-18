@@ -120,12 +120,13 @@ jobs:
         from email.mime.base import MIMEBase
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
+        from os import getenv
         
         subject = "An email with attachment from Python"
         body = "This is an email with attachment sent from Python"
         sender_email = "fabio.felici@pagopa.it"
         receiver_email = "umberto.coppolabottazzi@pagopa.it" 
-        password = $(APP_PASS)
+        password = getenv("APP_PASS")
         
         # Create a multipart message and set headers
         message = MIMEMultipart()
