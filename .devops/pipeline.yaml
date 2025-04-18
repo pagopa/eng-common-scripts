@@ -13,7 +13,7 @@ pool:
   vmImage: ubuntu-latest
 
 jobs:
-- job: ReadVariableFromSourcePipeline
+- job: CertDiff
   steps:
   - download: renew
     artifact: force_renew_cert_variable
