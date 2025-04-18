@@ -119,7 +119,7 @@ jobs:
       MAIL_BODY: |
         This is an email to inform you that on $(KEY_VAULT_CERT_NAME) there some error with new certificate.
 
-        $(CONTENT_OUTPUT)
+        $(dependencies.CompareCert.CONTENT_OUTPUT)
       SENDER_EMAIL: "fabio.felici@pagopa.it"
       RECEIVER_EMAIL: "umberto.coppolabottazzi@pagopa.it" 
       APP_PASS: $(APP_PASS)
