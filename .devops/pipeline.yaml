@@ -124,9 +124,9 @@ jobs:
         from email.mime.text import MIMEText
         from os import getenv
         
-        certdiff_out = open("output.txt", 'rb')
+        certdiff_out = open("output.txt", 'r')
 
-        subject = f"{getenv('KEY_VAULT_CERT_NAME')}: certificate issue detected."
+        subject = f"[CertificateIssue] {getenv('KEY_VAULT_CERT_NAME')}: certificate issue detected."
         body = f"""
         This is an email to inform you that on {getenv('KEY_VAULT_CERT_NAME')} there some error with new certificate.
 
