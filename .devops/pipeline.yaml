@@ -93,7 +93,7 @@ jobs:
           awk "BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename=\"${name}\" c \".pem\"} {if (filename) print > filename}" "$name.pem"
           if [[ ! -f "${name}2.pem" ]]; then
               echo "❗ ${name}2.pem not found. Skipping..."
-              exit 1
+              # exit 1
           fi
     
           # Convert root certificate from DER to PEM
