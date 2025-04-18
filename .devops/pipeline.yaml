@@ -105,8 +105,8 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json > output.txt
-        cat report.json
+        certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json > output.txt ||
+        cat report.json && exit 1
 
   - task: PythonScript@0
     name: SendMail
