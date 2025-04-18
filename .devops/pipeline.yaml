@@ -84,25 +84,19 @@ jobs:
         
           # Extract certificates from .pfx (without private keys)
           echo "🔐 Extracting certificates from $name.pfx"
-          openssl pkcs12 -in "$name.pfx" -nodes -nokeys -passin pass: -out "$name.pem" | awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' > "$name.pem"
-          awk '/-----BEGIN/{a=1}/-----END/{print;a=0}a' $name.pem > "$name.pem"
+          openssl pkcs12 -in "$name.pfx" -nodes -nokeys -passin pass: | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > "$name.pem"
           
           # Split multiple certificates into separate file
           echo "📂 Splitting certificates into individual files"                
+          CERT_COUNT=$(awk '/-----BEGIN CERTIFICATE-----/{x="'"$name"'_cert" ++i ".pem"} x{print > x} END{print i}' "$name.pem")
           
-          awk "BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename=\"${name}\" c \".pem\"} {if (filename) print > filename}" "$name.pem"
-          if [[ ! -f "${name}2.pem" ]]; then
-              echo "❗ ${name}2.pem not found. Skipping..."
-              exit 1
-          fi
-    
-          # Convert root certificate from DER to PEM
           echo "🔁 Converting DER → PEM"
-          openssl x509 -in ${name}2.pem -noout -text | grep 'CA Issuers' | cut -d ':' -f2,3 | xargs curl -s -o ${name}_root.der
-          
+          openssl x509 -in ${name}_cert${CERT_COUNT}.pem -noout -text | grep 'CA Issuers' | cut -d ':' -f2,3 | xargs curl -s -o ${name}_root.der
+    
           openssl x509 -inform DER -in ${name}_root.der -out ${name}_root.pem
           
-          cat ${name}1.pem ${name}2.pem ${name}_root.pem > ${name}_chain.pem
+          echo "🔗 Generating certificate chain PEM: ${name}_chain.pem"
+          cat $(seq 1 $CERT_COUNT | xargs -I{} echo "${name}_cert{}.pem") ${name}_root.pem > ${name}_chain.pem
         done
 
   - task: AzureCLI@2
