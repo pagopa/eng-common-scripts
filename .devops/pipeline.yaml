@@ -89,11 +89,22 @@ jobs:
           # Split multiple certificates into separate file
           echo "📂 Splitting certificates into individual files"                
           CERT_COUNT=$(awk '/-----BEGIN CERTIFICATE-----/{x="'"$name"'_cert" ++i ".pem"} x{print > x} END{print i}' "$name.pem")
+        
+          LAST_CERT="${name}_cert${CERT_COUNT}.pem"
+        
+          IS_SELF_SIGNED=$(openssl x509 -in "$LAST_CERT" -noout -issuer -subject | awk -F'= ' '
+          /issuer=/{issuer=$2}
+          /subject=/{subject=$2}
+          END {print (issuer == subject) ? "yes" : "no"}')
           
-          echo "🔁 Converting DER → PEM"
-          openssl x509 -in ${name}_cert${CERT_COUNT}.pem -noout -text | grep 'CA Issuers' | cut -d ':' -f2,3 | xargs curl -s -o ${name}_root.der
-    
-          openssl x509 -inform DER -in ${name}_root.der -out ${name}_root.pem
+          if [[ "$IS_SELF_SIGNED" == "yes" ]]; then
+            echo "✅ Last certificate is a self-signed root. Using it as root PEM."
+            cp "$LAST_CERT" "${name}_root.pem"
+          else
+            echo "🌐 Downloading root certificate via CA Issuers URL"
+            openssl x509 -in "$LAST_CERT" -noout -text | grep 'CA Issuers' | cut -d ':' -f2- | xargs curl -s -o "${name}_root.der"
+            openssl x509 -inform DER -in "${name}_root.der" -out "${name}_root.pem"
+          fi          
           
           echo "🔗 Generating certificate chain PEM: ${name}_chain.pem"
           cat $(seq 1 $CERT_COUNT | xargs -I{} echo "${name}_cert{}.pem") ${name}_root.pem > ${name}_chain.pem
