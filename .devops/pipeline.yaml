@@ -99,7 +99,7 @@ jobs:
 
 - job: CompareCert
   dependsOn: GetCert
-  condition: success()
+  condition: succeeded()
   steps:
   - task: AzureCLI@2
     name: CompareCert
@@ -115,7 +115,8 @@ jobs:
   condition: failed()
   steps:
   - task: PythonScript@0
-    env: APP_PASS = $(APP_PASS)
+    env:
+      APP_PASS: $(APP_PASS)
     inputs:
       scriptSource: 'inline'
       script: |
