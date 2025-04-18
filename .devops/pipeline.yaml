@@ -80,7 +80,12 @@ jobs:
           
           # Split multiple certificates into separate file
           echo "📂 Splitting certificates into individual files"                
-          awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="${name}" c ".pem"} {if (filename) print > filename}' ${name}.pem
+          awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="${name}" c ".pem"} {if (filename) print > filename}' $name.pem
+          
+          if [[ ! -f "${name}2.pem" ]]; then
+              echo "❗ ${name}2.pem not found. Skipping..."
+              exit 1
+          fi
     
           # Convert root certificate from DER to PEM
           echo "🔁 Converting DER → PEM"
