@@ -116,7 +116,7 @@ jobs:
 
   - template: templates/send-mail/template.yaml@azure
     parameters:
-      # CONDITION_FLAG: "failed()"
+      CONDITION_FLAG: "failed()"
       MAIL_SUBJECT: "CertificateIssue - $(KEY_VAULT_CERT_NAME)"
       MAIL_BODY: |
         <html>
