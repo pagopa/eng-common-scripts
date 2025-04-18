@@ -98,6 +98,8 @@ jobs:
         done
 
 - job: CompareCert
+  dependsOn: GetCert
+  condition: success()
   steps:
   - task: AzureCLI@2
     name: CompareCert
