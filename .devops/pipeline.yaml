@@ -103,6 +103,7 @@ jobs:
     condition: succeeded()
     name: CompareCert
     inputs:
+      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
