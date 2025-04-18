@@ -54,9 +54,6 @@ jobs:
       pip install $(ls -1 certdiff*)
       certdiff --help
 
-      FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
-      echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
-
   - task: AzureCLI@2
     name: GetCertificatesFromKeyVault
     inputs:
@@ -64,6 +61,10 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
+        
+        # Extract Force variable
+        FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
+        echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
         
         az keyvault secret download --file stable.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
         az keyvault secret download --file current.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' >/dev/null
@@ -77,11 +78,11 @@ jobs:
           # Extract certificates from .pfx (without private keys)
           echo "🔐 Extracting certificates from $name.pfx"
           openssl pkcs12 -in "$name.pfx" -nodes -nokeys -passin pass: -out "$name.pem"
-          ls -la
+          
           # Split multiple certificates into separate file
           echo "📂 Splitting certificates into individual files"                
+          
           awk "BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename=\"${name}\" c \".pem\"} {if (filename) print > filename}" "$name.pem"
-          ls -la
           if [[ ! -f "${name}2.pem" ]]; then
               echo "❗ ${name}2.pem not found. Skipping..."
               exit 1
