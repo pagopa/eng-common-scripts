@@ -118,9 +118,12 @@ jobs:
       CONDITION_FLAG: "failed()"
       MAIL_SUBJECT: "CertificateIssue - $(KEY_VAULT_CERT_NAME)"
       MAIL_BODY: |
-        This is an email to inform you that on $(KEY_VAULT_CERT_NAME) there some error with new certificate.
-
-        $(dependencies.CompareCert.CONTENT_OUTPUT)
+        <html>
+          <body>
+            <p>This is an email to inform you that on <b>$(KEY_VAULT_CERT_NAME)</b> there some error with new certificate.</p>
+            <p>$(dependencies.CompareCert.CONTENT_OUTPUT)</p>
+          </body>
+        </html>
       SENDER_EMAIL: "fabio.felici@pagopa.it"
       RECEIVER_EMAIL: "umberto.coppolabottazzi@pagopa.it" 
       APP_PASS: $(APP_PASS)
