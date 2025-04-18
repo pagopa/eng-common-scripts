@@ -105,13 +105,15 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        certdiff --verbose --old stable_chain.pem --new current_chain.pem --report-json report.json
+        certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json > output.txt
+        cat report.json
 
   - task: PythonScript@0
     name: SendMail
     condition: failed()
     env:
       APP_PASS: $(APP_PASS)
+      KEY_VAULT_CERT_NAME: $(KEY_VAULT_CERT_NAME)
     inputs:
       scriptSource: 'inline'
       script: |
@@ -122,8 +124,14 @@ jobs:
         from email.mime.text import MIMEText
         from os import getenv
         
-        subject = "An email with attachment from Python"
-        body = "This is an email with attachment sent from Python"
+        certdiff_out = open("output.txt", 'rb')
+
+        subject = f"{getenv('KEY_VAULT_CERT_NAME'): certificate issue detected."
+        body = f"""
+        This is an email to inform you that on {getenv('KEY_VAULT_CERT_NAME') there some error with new certificate.
+
+        {certdiff_out.read()}
+        """
         sender_email = "fabio.felici@pagopa.it"
         receiver_email = "umberto.coppolabottazzi@pagopa.it" 
         password = getenv("APP_PASS")
