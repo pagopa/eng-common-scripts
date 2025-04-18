@@ -110,7 +110,7 @@ jobs:
         certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json --verbose
         cat report.json
         certdiff --old stable_chain.pem --new current_chain.pem > output.txt
-        cat output.txt | awk '{print "##vso[task.setvariable variable=CONTENT_OUTPUT;issecret=false;]"""$0}'
+        echo "##vso[task.setvariable variable=CONTENT_OUTPUT;isOutput=true]$(cat output.txt)"
         certdiff --old stable_chain.pem --new current_chain.pem
 
   - template: templates/send-mail/template.yaml@azure
