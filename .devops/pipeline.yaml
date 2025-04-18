@@ -64,23 +64,32 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
+        
         az keyvault secret download --file stable.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
         az keyvault secret download --file current.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' >/dev/null
         
-        openssl pkcs12 -in stable.pfx -nodes -nokeys -passin pass: -out stable.pem
-        openssl pkcs12 -in current.pfx -nodes -nokeys -passin pass: -out current.pem
-                
-        awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="stable" c ".pem"} {if (filename) print > filename}' stable.pem
-        awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="current" c ".pem"} {if (filename) print > filename}' current.pem
-
-        openssl x509 -in stable2.pem -noout -text | grep 'CA Issuers' | cut -d ':' -f2,3 | xargs curl -o stable_root.der
-        openssl x509 -in current2.pem -noout -text | grep 'CA Issuers' | cut -d ':' -f2,3 | xargs curl -o current_root.der
+        for name in stable current; do
+          if [[ ! -f "$name.pfx" ]]; then
+              echo "❗File $name.pfx not found. Skipping..."
+              exit 1
+          fi
         
-        openssl x509 -inform DER -in stable_root.der -out stable_root.pem
-        openssl x509 -inform DER -in current_root.der -out current_root.pem
-        
-        cat stable.pem stable_root.pem > stable_chain.pem
-        cat current.pem current_root.pem > current_chain.pem
+          # Extract certificates from .pfx (without private keys)
+          echo "🔐 Extracting certificates from $name.pfx"
+          openssl pkcs12 -in "$name.pfx" -nodes -nokeys -passin pass: -out "$name.pem"
+          
+          # Split multiple certificates into separate file
+          echo "📂 Splitting certificates into individual files"                
+          awk 'BEGIN {c=0;} /-----BEGIN CERTIFICATE-----/ {c++; filename="${name}" c ".pem"} {if (filename) print > filename}' ${name}.pem
+    
+          # Convert root certificate from DER to PEM
+          echo "🔁 Converting DER → PEM"
+          openssl x509 -in ${name}2.pem -noout -text | grep 'CA Issuers' | cut -d ':' -f2,3 | xargs curl -s -o ${name}_root.der
+          
+          openssl x509 -inform DER -in ${name}_root.der -out ${name}_root.pem
+          
+          cat ${name}.pem ${name}_root.pem > ${name}_chain.pem
+        done
         
         certdiff --verbose --old stable_chain.pem --new current_chain.pem --report-json report.json
 
