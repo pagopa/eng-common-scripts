@@ -102,7 +102,6 @@ jobs:
   - task: AzureCLI@2
     condition: succeeded()
     name: CompareCert
-    continueOnError: true
     inputs:
       azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
       scriptType: bash
@@ -115,6 +114,7 @@ jobs:
 
   - template: templates/send-mail/template.yaml@azure
     parameters:
+      CONDITION_FLAG: "failed()"
       MAIL_SUBJECT: "TEST"
       MAIL_BODY: "PROVA"
       SENDER_EMAIL: "fabio.felici@pagopa.it"
