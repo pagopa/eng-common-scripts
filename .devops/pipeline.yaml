@@ -94,7 +94,7 @@ jobs:
           
           openssl x509 -inform DER -in ${name}_root.der -out ${name}_root.pem
           
-          cat ${name}.pem ${name}_root.pem > ${name}_chain.pem
+          cat ${name}1.pem ${name}2.pem ${name}_root.pem > ${name}_chain.pem
         done
 
   - task: AzureCLI@2
