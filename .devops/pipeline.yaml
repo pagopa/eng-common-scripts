@@ -97,11 +97,8 @@ jobs:
           cat ${name}.pem ${name}_root.pem > ${name}_chain.pem
         done
 
-- job: CompareCert
-  dependsOn: GetCert
-  condition: succeeded()
-  steps:
   - task: AzureCLI@2
+    condition: succeeded()
     name: CompareCert
     inputs:
       azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
@@ -110,11 +107,9 @@ jobs:
       inlineScript: |
         certdiff --verbose --old stable_chain.pem --new current_chain.pem --report-json report.json
 
-- job: SendMail
-  dependsOn: CompareCert
-  condition: failed()
-  steps:
   - task: PythonScript@0
+    name: SendMail
+    condition: failed()
     env:
       APP_PASS: $(APP_PASS)
     inputs:
