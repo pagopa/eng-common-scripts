@@ -105,7 +105,7 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json > output.txt ||
+        certdiff --old stable_chain.pem --new current_chain.pem --report-json report.json | tee output.txt ||
         cat report.json && exit 1
 
   - task: PythonScript@0
@@ -126,9 +126,9 @@ jobs:
         
         certdiff_out = open("output.txt", 'rb')
 
-        subject = f"{getenv('KEY_VAULT_CERT_NAME'): certificate issue detected."
+        subject = f"{getenv('KEY_VAULT_CERT_NAME')}: certificate issue detected."
         body = f"""
-        This is an email to inform you that on {getenv('KEY_VAULT_CERT_NAME') there some error with new certificate.
+        This is an email to inform you that on {getenv('KEY_VAULT_CERT_NAME')} there some error with new certificate.
 
         {certdiff_out.read()}
         """
