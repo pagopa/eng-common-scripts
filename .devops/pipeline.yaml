@@ -136,7 +136,7 @@ jobs:
 
   - template: templates/send-mail/template.yaml@azure
     parameters:
-      CONDITION_FLAG: eq(variables['action'], 'Mail')
+      CONDITION_FLAG: eq(variables.action, 'Mail')
       MAIL_SUBJECT: "CertificateIssue - $(KEY_VAULT_CERT_NAME)"
       MAIL_BODY: |
         <html>
@@ -151,7 +151,7 @@ jobs:
       ATTACHMENTS_COMMA_SEP: "current_chain.pem"
 
   - task: AzureCLI@2
-    condition: eq(variables['action'], 'Renew')
+    condition: eq(variables.action, 'Renew')
     name: ChangeCertificate
     inputs:
       azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
