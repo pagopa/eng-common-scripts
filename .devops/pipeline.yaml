@@ -12,7 +12,6 @@ resources:
   - repository: azure
     type: github
     name: pagopa/azure-pipeline-templates
-    ref: PAYMCLOUD-379-send-mail-azure-devops-template
     endpoint: 'azure-devops-github-ro'
 
   
