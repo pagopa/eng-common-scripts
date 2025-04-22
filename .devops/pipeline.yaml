@@ -112,10 +112,22 @@ jobs:
         CONTENT=$(cat output.txt)
         echo -e "##vso[task.setvariable variable=EMAILBODY]$(echo "$CONTENT" | sed ':a;N;$!ba;s/\n/<br>/g')"
         certdiff --old stable_chain.pem --new current_chain.pem
+        cert_diff_status=$?
+        
+        openssl x509 -inform pem -checkend 2592000 -noout -in certificate.pem
+        openssl_checkend_status=$?
+        
+        if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
+          if ! openssl x509 -inform pem -checkend $((2592000-604800)) -noout -in stable_chain.pem; then
+            echo "##vso[task.setvariable variable=action;isOutput=true]Renew"
+          else
+            echo "##vso[task.setvariable variable=action;isOutput=true]Mail"
+          fi
+        fi
 
   - template: templates/send-mail/template.yaml@azure
     parameters:
-      CONDITION_FLAG: "failed()"
+      CONDITION_FLAG: eq(variables['action'], 'Mail')
       MAIL_SUBJECT: "CertificateIssue - $(KEY_VAULT_CERT_NAME)"
       MAIL_BODY: |
         <html>
