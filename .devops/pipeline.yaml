@@ -114,7 +114,7 @@ jobs:
         certdiff --old stable_chain.pem --new current_chain.pem
         cert_diff_status=$?
         
-        openssl x509 -inform pem -checkend 2592000 -noout -in certificate.pem
+        openssl x509 -inform pem -checkend 2592000 -noout -in current_chain.pem
         openssl_checkend_status=$?
         
         if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
