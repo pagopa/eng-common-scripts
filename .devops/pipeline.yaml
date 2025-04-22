@@ -111,7 +111,7 @@ jobs:
         cat report.json
         certdiff --old stable_chain.pem --new current_chain.pem > output.txt
         CONTENT=$(cat output.txt)
-        echo -e "##vso[task.setvariable variable=CONTENT_OUTPUT]emailbody=$(echo "$output" | sed ':a;N;$!ba;s/\n/%0D%0A/g')"
+        echo -e "##vso[task.setvariable variable=EMAILBODY]EMAILBODY=$(echo "$CONTENT" | sed ':a;N;$!ba;s/\n/%0D%0A/g')"
         certdiff --old stable_chain.pem --new current_chain.pem
 
   - template: templates/send-mail/template.yaml@azure
@@ -122,7 +122,7 @@ jobs:
         <html>
           <body>
             <p>This is an email to inform you that on <b>$(KEY_VAULT_CERT_NAME)</b> there some error with new certificate.</p>
-            <p>$(CONTENT_OUTPUT)</p>
+            <p>$(EMAILBODY)</p>
           </body>
         </html>
       SENDER_EMAIL: "fabio.felici@pagopa.it"
