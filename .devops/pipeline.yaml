@@ -150,12 +150,12 @@ jobs:
       APP_PASS: $(APP_PASS)
       ATTACHMENTS_COMMA_SEP: "current_chain.pem"
 
-#  - task: AzureCLI@2
-#    condition: succeeded() # TODO da modificare
-#    name: ChangeCertificate
-#    inputs:
-#      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
-#      scriptType: bash
-#      scriptLocation: inlineScript
-#      inlineScript: |
-#        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f stable.pfx
+  - task: AzureCLI@2
+    condition: eq(variables['action'], 'Renew')
+    name: ChangeCertificate
+    inputs:
+      azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f stable.pfx
