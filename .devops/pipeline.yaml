@@ -114,7 +114,16 @@ jobs:
         certdiff --old stable_chain.pem --new current_chain.pem
         cert_diff_status=$?
         
-        openssl x509 -inform pem -checkend '$(CERT_NAME_EXPIRE_SECONDS)'  -noout -in stable_chain.pem
+        openssl x509 -inform pem -checkend 7427657 -noout -in stable_chain.pem
+        openssl_checkend_status=$?
+        
+        if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
+          if ! openssl x509 -inform pem -checkend 7427657 -noout -in stable_chain.pem; then
+            echo "##vso[task.setvariable variable=action;isOutput=true]Renew"
+          else
+            echo "##vso[task.setvariable variable=action;isOutput=true]Mail"
+          fi
+        fi
         openssl_checkend_status=$?
         
         if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
