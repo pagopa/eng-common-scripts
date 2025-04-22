@@ -111,7 +111,7 @@ jobs:
         cat report.json
         certdiff --old stable_chain.pem --new current_chain.pem > output.txt
         CONTENT=$(cat output.txt)
-        echo -e "##vso[task.setvariable variable=CONTENT_OUTPUT]$CONTENT"
+        echo -e "##vso[task.setvariable variable=CONTENT_OUTPUT]emailbody=$(echo "$output" | sed ':a;N;$!ba;s/\n/%0D%0A/g')"
         certdiff --old stable_chain.pem --new current_chain.pem
 
   - template: templates/send-mail/template.yaml@azure
