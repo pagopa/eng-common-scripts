@@ -117,7 +117,8 @@ jobs:
         openssl x509 -inform pem -checkend 7427657 -noout -in stable_chain.pem
         openssl_checkend_status=$?
         
-        if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
+        #if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
+        if [ $cert_diff_status -eq 0 ] && [ $openssl_checkend_status -ne 0 ]; then
           if ! openssl x509 -inform pem -checkend 7427657 -noout -in stable_chain.pem; then
             echo -e "##vso[task.setvariable variable=ACTION]Renew"
             echo "Renew"
