@@ -132,7 +132,10 @@ jobs:
 
   - template: templates/send-mail/template.yaml@azure
     parameters:
-      CONDITION_FLAG: eq(variables['ACTION'], 'Mail')
+      CONDITION_FLAG: or(
+          eq(variables['ACTION'], 'Mail'),
+          eq(variables['FORCE_RENEW_CERT'], 'true')
+        )
       MAIL_SUBJECT: "CertificateIssue - $(KEY_VAULT_CERT_NAME)"
       MAIL_BODY: |
         <html>
@@ -157,4 +160,4 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f stable.pfx
+        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f current_chain.pfx
