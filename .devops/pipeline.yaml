@@ -121,7 +121,7 @@ jobs:
           exit 0
         fi
         
-        if ! openssl x509 -inform pem -checkend $($CERT_NAME_EXPIRE_SECONDS) -noout -in stable_chain.pem >/dev/null 2>&1; then 
+        if ! openssl x509 -inform pem -checkend $(CERT_NAME_EXPIRE_SECONDS) -noout -in stable_chain.pem >/dev/null 2>&1; then 
           echo "The certificate expires in less than $(($CERT_NAME_EXPIRE_SECONDS / 86400)) day. Proceeding with the mail task"
           echo -e "##vso[task.setvariable variable=ACTION]Mail"
           exit 0
