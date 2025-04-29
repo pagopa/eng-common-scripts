@@ -70,7 +70,7 @@ jobs:
         
         # Extract Force variable
         FORCE_RENEW_CERT=$(cat $(Pipeline.Workspace)/renew/force_renew_cert_variable/force_renew_cert_variable.txt)
-        echo "FORCE_RENEW_CERT: $FORCE_RENEW_CERT"
+        echo -e "##vso[task.setvariable variable=FORCE_RENEW_CERT]$(echo "$FORCE_RENEW_CERT")"
         
         az keyvault secret download --file stable.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME_STABLE)'  >/dev/null
         az keyvault secret download --file current.pfx --encoding base64 --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' >/dev/null
@@ -113,18 +113,21 @@ jobs:
         echo -e "##vso[task.setvariable variable=EMAILBODY]$(echo "$CONTENT" | sed ':a;N;$!ba;s/\n/<br>/g')"
         certdiff --old stable_chain.pem --new current_chain.pem
         cert_diff_status=$?
+        echo -e "##vso[task.setvariable variable=CERTDIFFSTATUS]$(echo "$cert_diff_status")
+
+        if ! openssl x509 -inform pem -checkend $(($CERT_NAME_EXPIRE_SECONDS-518400)) -noout -in stable_chain.pem >/dev/null 2>&1; then 
+          echo "The certificate expires in less than $(($CERT_NAME_EXPIRE_SECONDS / 86400)) day. Proceeding with the switch task"
+          echo -e "##vso[task.setvariable variable=ACTION]Renew"
+          exit 0
+        fi
         
-        openssl x509 -inform pem -checkend 2851200 -noout -in stable_chain.pem >/dev/null 2>&1
-        openssl_checkend_status=$?
-        
-        if [ $cert_diff_status -ne 0 ] && [ $openssl_checkend_status -ne 0 ]; then
-          if ! openssl x509 -inform pem -checkend $((2851200-0)) -noout -in stable_chain.pem >/dev/null 2>&1; then
-            echo "The certificate expires in less than X. Proceeding with the switch task"
-            echo -e "##vso[task.setvariable variable=ACTION]Renew"
-          else
-            echo "The certificate expires in less than X. Proceeding with the mail task"
-            echo -e "##vso[task.setvariable variable=action]Mail"
-          fi
+        if ! openssl x509 -inform pem -checkend $($CERT_NAME_EXPIRE_SECONDS) -noout -in stable_chain.pem >/dev/null 2>&1; then 
+          echo "The certificate expires in less than $(($CERT_NAME_EXPIRE_SECONDS / 86400)) day. Proceeding with the mail task"
+          echo -e "##vso[task.setvariable variable=ACTION]Mail"
+          exit 0
+        else
+          echo "The certificate is valid. No action required"
+          exit 0
         fi
 
   - template: templates/send-mail/template.yaml@azure
@@ -139,12 +142,15 @@ jobs:
           </body>
         </html>
       SENDER_EMAIL: "fabio.felici@pagopa.it"
-      RECEIVER_EMAIL: "umberto.coppolabottazzi@pagopa.it" 
+      RECEIVER_EMAIL: "umberto.coppolabottazzi@pagopa.it"
       APP_PASS: $(APP_PASS)
       ATTACHMENTS_COMMA_SEP: "current_chain.pem"
 
   - task: AzureCLI@2
-    condition: eq(variables['ACTION'], 'Renew')
+    condition: or(
+        eq(variables['ACTION'], 'Renew'),
+        eq(variables['FORCE_RENEW_CERT'], 'true')
+      )
     name: ChangeCertificate
     inputs:
       azureSubscription: "$(KEY_VAULT_SERVICE_CONNECTION)"
