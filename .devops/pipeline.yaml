@@ -160,4 +160,4 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f current_chain.pfx
+        az keyvault certificate import --vault-name '$(KEY_VAULT_NAME)' --name '$(KEY_VAULT_CERT_NAME)' -f current.pfx
