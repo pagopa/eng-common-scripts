@@ -113,7 +113,7 @@ jobs:
         echo -e "##vso[task.setvariable variable=EMAILBODY]$(echo "$CONTENT" | sed ':a;N;$!ba;s/\n/<br>/g')"
         certdiff --old stable_chain.pem --new current_chain.pem
         cert_diff_status=$?
-        echo -e "##vso[task.setvariable variable=CERTDIFFSTATUS]$(echo "$cert_diff_status")
+        echo -e "##vso[task.setvariable variable=CERTDIFFSTATUS]$(echo "$cert_diff_status")"
 
         if ! openssl x509 -inform pem -checkend $(($CERT_NAME_EXPIRE_SECONDS-518400)) -noout -in stable_chain.pem >/dev/null 2>&1; then 
           echo "The certificate expires in less than $(($CERT_NAME_EXPIRE_SECONDS / 86400)) day. Proceeding with the switch task"
