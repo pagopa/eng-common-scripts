@@ -10,33 +10,12 @@
 # ------------------------------------------------------------------------------
 # CRON GROM - Generic Recovery & Outage Mitigator for AKS CronJobs
 #
-# This script repairs CronJobs in the AKS cluster in case of incidents
-# with many Pending jobs.
-#
-# Usage:
-#   ./cronjob-grom.sh [NAMESPACE]
-#
-# Arguments:
-#   NAMESPACE     The target Kubernetes namespace (default: default)
-#
-# Description:
-#   This script identifies CronJobs which are repeatedly stuck in Pending state
-#   due to:
-#     - Resource limits (requested CPU and/or memory unavailable on any node)
-#     - nodeSelector incompatibility (no node matches scheduling requirements)
-#
-#   For any such CronJob encountered, the script:
-#     1. Suspends the CronJob (sets spec.suspend = true)
-#     2. Cleans up all associated Pending Jobs and Pods created by that CronJob
-#
-#   The script supports multi-container Pods and performs nodeSelector checks.
-#
-# Requirements:
-#   - bash
-#   - kubectl
-#   - jq
-#
+# Supported modes:
+#   soft:   only suspends and cleans up cronjobs when pending pods exceed the threshold
+#   fix:    immediately suspends cronjobs with any pending pod and cleans them up
+#   resume: resumes all previously suspended cronjobs
 ################################################################################
+
 
 show_help() {
   echo "-------------------------------------------------------------------------------"
