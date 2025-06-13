@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pending-cronjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: stress
+            image: busybox
+            command: ["sleep", "3600"]
+            resources:
+              requests:
+                memory: "1000Gi"
+                cpu: "500"
+              limits:
+                memory: "1000Gi"
+                cpu: "500"
+          restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pending-cronjob-bad-nodeselector
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            no-such-node: "ever"
+          containers:
+          - name: test
+            image: busybox
+            command: ["sleep", "3600"]
+          restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: heavy-cronjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      parallelism: 4
+      completions: 4
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: heavy-job
+              image: busybox
+              command:
+                - "sleep"
+                - "120"
+              resources:
+                requests:
+                  memory: "150Mi"
+                  cpu: "300m"
+                limits:
+                  memory: "150Mi"
+                  cpu: "300m"
