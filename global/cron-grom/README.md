@@ -26,7 +26,7 @@ When CronJob workloads are unable to schedule (e.g., remain in Pending state) du
 ### Usage
 
 ```bash
-bash bash cron-grom.sh [NAMESPACE]
+bash cron-grom.sh [NAMESPACE]
 ```
 
 - `NAMESPACE` *(optional)*: Target Kubernetes namespace. Defaults to `default`.
@@ -36,7 +36,7 @@ bash bash cron-grom.sh [NAMESPACE]
 **Examples:**
 
 ```bash
-bash bash cron-grom.sh bash cron-grom.sh my-namespace
+bash cron-grom.sh bash cron-grom.sh my-namespace
 ```
 
 ---
