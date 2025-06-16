@@ -250,7 +250,7 @@ case "$MODE" in
       | .metadata.ownerReferences[0].name' | sort | uniq)
 
     for JOB_NAME in $JOBS_WITH_PENDING_PODS; do
-      echo "Deleting job with pending pod(s): $JOB_NAME"
+      echo "  Deleting job with pending pod(s): $JOB_NAME"
       kubectl delete job "$JOB_NAME" -n "$NAMESPACE"
     done
 
@@ -274,7 +274,7 @@ case "$MODE" in
       exit 0
     fi
     for cj in $CRONJOBS; do
-      echo "Resuming CronJob $cj"
+      echo "  Resuming CronJob $cj"
       kubectl patch cronjob "$cj" -n "$NAMESPACE" --type=merge -p '{"spec":{"suspend":false}}'
     done
     echo "All suspended CronJobs have been resumed."
