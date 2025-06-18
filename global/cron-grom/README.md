@@ -26,8 +26,12 @@ When CronJob workloads are unable to schedule (e.g., remain in Pending state) du
 ### Usage
 
 ```bash
-bash cron-grom.sh [NAMESPACE]
+bash cron-grom.sh [MODE] [NAMESPACE]
 ```
+- `MODE` *(required)*: Operation mode [soft|fix|resume].
+  - `soft`:   "Only suspends CronJobs with pending pods above the threshold and cleans them up."
+  - `fix`:    "Immediately suspends CronJobs with at least 1 pending pod and cleans them up."
+  - `resume`: "Resumes suspended CronJobs."
 
 - `NAMESPACE` *(optional)*: Target Kubernetes namespace. Defaults to `default`.
 
