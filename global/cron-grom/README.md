@@ -36,7 +36,7 @@ bash cron-grom.sh [NAMESPACE]
 **Examples:**
 
 ```bash
-bash cron-grom.sh bash cron-grom.sh my-namespace
+bash cron-grom.sh fix my-namespace
 ```
 
 ---
