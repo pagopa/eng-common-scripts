@@ -233,7 +233,14 @@ function other_actions() {
 
         terraform apply -auto-approve "$file_name.tfplan" -compact-warnings | tee "$file_name.apply"
 
+        apply_success=$(grep -c "Apply complete!" "$file_name.apply")
         echo "Apply completed, auditing apply result..."
+        # save apply result to audit container
+        entity_update=$(az storage entity merge --account-name "$audit_storage_account_name" \
+          --table-name "$audit_table_name" \
+          --auth-mode key \
+          --only-show-errors \
+          --entity PartitionKey="$partition_key" RowKey="$row_key" ApplySuccess="$([ "$apply_success" = 1 ] && echo "true" || echo "false")" ApplySuccess@odata.type=Edm.Boolean )
         # save apply result to audit container
         apply_upload=$(az storage blob upload --account-name "$audit_storage_account_name" \
         --container-name "$audit_container_name" \
