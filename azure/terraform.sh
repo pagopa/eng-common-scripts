@@ -175,6 +175,7 @@ function other_actions() {
 
       branch_name=$(git rev-parse --abbrev-ref HEAD)
       commit_hash=$(git rev-parse HEAD)
+      git_project=$(git remote get-url origin)
 
       # get the current apply folder
       root_folder_length=${#root_folder}
@@ -195,8 +196,7 @@ function other_actions() {
       # plan to file
       terraform plan -var-file="./env/$env/terraform.tfvars" -compact-warnings -out="$file_name.tfplan" $other
 
-
-      # check if changes or errors are present
+      # check if changes are present
       no_changes=$(terraform show -no-color "$file_name.tfplan" | grep -c "No changes")
       errors=$(terraform show -no-color "$file_name.tfplan" | grep -c "Planning failed")
       if [ "$no_changes" == 1 ]; then
@@ -221,7 +221,7 @@ function other_actions() {
           --table-name "$audit_table_name" \
           --auth-mode key \
           --only-show-errors \
-          --entity PartitionKey="$partition_key" RowKey="$row_key" BranchName="$branch_name" CommitHash="$commit_hash" SkipPolicy="false" SkipPolicy@odata.type=Edm.Boolean Watched="false" Watched@odata.type=Edm.Boolean PlanFile="$file_name.plan" ApplyFile="$file_name.apply" Arguments="$other" User="$current_user" Folder="$current_folder")
+          --entity PartitionKey="$partition_key" RowKey="$row_key" BranchName="$branch_name" CommitHash="$commit_hash" SkipPolicy="false" SkipPolicy@odata.type=Edm.Boolean Watched="false" Watched@odata.type=Edm.Boolean PlanFile="$file_name.plan" ApplyFile="$file_name.apply" Arguments="$other" User="$current_user" Folder="$current_folder" Project="$git_project")
         # save plan to audit container
         plan_upload=$(az storage blob upload --account-name "$audit_storage_account_name" \
         --container-name "$audit_container_name" \
@@ -232,7 +232,6 @@ function other_actions() {
         --overwrite true)
 
         terraform apply -auto-approve "$file_name.tfplan" -compact-warnings | tee "$file_name.apply"
-
         apply_success=$(grep -c "Apply complete!" "$file_name.apply")
         echo "Apply completed, auditing apply result..."
         # save apply result to audit container
@@ -241,7 +240,7 @@ function other_actions() {
           --auth-mode key \
           --only-show-errors \
           --entity PartitionKey="$partition_key" RowKey="$row_key" ApplySuccess="$([ "$apply_success" = 1 ] && echo "true" || echo "false")" ApplySuccess@odata.type=Edm.Boolean )
-        # save apply result to audit container
+
         apply_upload=$(az storage blob upload --account-name "$audit_storage_account_name" \
         --container-name "$audit_container_name" \
         --file "$partition_key-$row_key.apply" \
