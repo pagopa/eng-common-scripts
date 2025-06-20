@@ -22,7 +22,10 @@ RESOURCE_GROUP_NAME="terraform-state-rg"
 STORAGE_ACCOUNT_NAME=${SUBSCRIPTION//-/}
 STORAGE_ACCOUNT_NAME=$(echo "$STORAGE_ACCOUNT_NAME" | tr '[:upper:]' '[:lower:]')
 STORAGE_ACCOUNT_NAME="tf${STORAGE_TYPE}${STORAGE_ACCOUNT_NAME}"
+TF_AUDIT_STORAGE_ACCOUNT_NAME="tfaudit${STORAGE_ACCOUNT_NAME}"
 STORAGE_ACCOUNT_CONTAINERS=("terraform-state")
+TF_AUDIT_STORAGE_ACCOUNT_CONTAINER=("prod-apply")
+TF_AUDIT_STORAGE_ACCOUNT_TABLES=("prodapply")
 
 echo "[INFO] SUBSCRIPTION: ${SUBSCRIPTION}"
 echo "[INFO] LOCATION: ${LOCATION}"
@@ -30,6 +33,7 @@ echo "[INFO] LOCATION_SHORT: ${LOCATION_SHORT}"
 echo "[INFO] RESOURCE_GROUP_NAME: ${RESOURCE_GROUP_NAME}"
 echo "[INFO] STORAGE_ACCOUNT_NAME: ${STORAGE_ACCOUNT_NAME}"
 echo "[INFO] STORAGE_ACCOUNT_CONTAINERS: ${STORAGE_ACCOUNT_CONTAINERS}"
+echo "[INFO] TF_AUDIT_STORAGE_ACCOUNT_NAME: ${ENABLE_ADVANCED_THREAT_PROTECTION}"
 
 az account set -s "${SUBSCRIPTION}"
 az provider register -n 'Microsoft.Storage'
@@ -46,6 +50,7 @@ fi
 # shellcheck disable=SC2046
 if [ $(az storage account check-name -n "${STORAGE_ACCOUNT_NAME}" --query nameAvailable -o tsv) == "true" ]; then
     az storage account create -g "${RESOURCE_GROUP_NAME}" -n "${STORAGE_ACCOUNT_NAME}" -l "${LOCATION}" --sku Standard_GZRS --min-tls-version TLS1_2
+    az storage account create -g "${RESOURCE_GROUP_NAME}" -n "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" -l "${LOCATION}" --sku Standard_GZRS --min-tls-version TLS1_2
     echo "[INFO] storage account: ${STORAGE_ACCOUNT_NAME} created"
 else
     echo "[INFO] storage account: ${STORAGE_ACCOUNT_NAME} already exists"
@@ -64,8 +69,46 @@ do
     fi
 done
 
+for CONTAINER_NAME in "${TF_AUDIT_STORAGE_ACCOUNT_CONTAINERS[@]}";
+do
+    # shellcheck disable=SC2046
+    if [ $(az storage container exists --account-name "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" -n "${CONTAINER_NAME}" --auth-mode login -o tsv --only-show-errors) == "False" ]; then
+        az storage container create -n "${CONTAINER_NAME}" --account-name "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" --auth-mode login --only-show-errors
+        echo "[INFO] container: ${CONTAINER_NAME} created"
+        sleep 30
+    else
+        echo "[INFO] container: ${CONTAINER_NAME} already exists"
+    fi
+done
+
+
+for TABLE_NAME in "${TF_AUDIT_STORAGE_ACCOUNT_TABLES[@]}";
+do
+    # shellcheck disable=SC2046
+    if [ $(az storage table exists --account-name "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" -n "${TABLE_NAME}" --auth-mode login -o tsv --only-show-errors) == "False" ]; then
+        az storage table create -n "${TABLE_NAME}" --account-name "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" --auth-mode login --only-show-errors
+        echo "[INFO] table: ${TABLE_NAME} created"
+        sleep 30
+    else
+        echo "[INFO] table: ${TABLE_NAME} already exists"
+    fi
+done
+
 az storage account blob-service-properties update \
   --account-name "${STORAGE_ACCOUNT_NAME}" \
+  --resource-group "${RESOURCE_GROUP_NAME}" \
+  --enable-delete-retention true \
+  --enable-container-delete-retention true \
+  --container-delete-retention-days 30 \
+  --enable-restore-policy true \
+  --restore-days 29 \
+  --delete-retention-days 30 \
+  --enable-change-feed true \
+  --change-feed-retention-days 30 \
+  --enable-versioning true
+
+az storage account blob-service-properties update \
+  --account-name "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" \
   --resource-group "${RESOURCE_GROUP_NAME}" \
   --enable-delete-retention true \
   --enable-container-delete-retention true \
@@ -81,6 +124,14 @@ echo "[INFO] blob-service-properties updated"
 
 az storage account update \
   --name "${STORAGE_ACCOUNT_NAME}" \
+  --resource-group "${RESOURCE_GROUP_NAME}" \
+  --min-tls-version TLS1_2 \
+  --sku Standard_GZRS \
+  --allow-blob-public-access false \
+  --allow-shared-key-access true
+
+az storage account update \
+  --name "${TF_AUDIT_STORAGE_ACCOUNT_NAME}" \
   --resource-group "${RESOURCE_GROUP_NAME}" \
   --min-tls-version TLS1_2 \
   --sku Standard_GZRS \
