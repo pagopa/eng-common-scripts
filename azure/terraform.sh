@@ -193,18 +193,20 @@ function other_actions() {
       source "$root_folder/.terraform-audit"
 
       # plan to file
-      plan=$(terraform plan -var-file="./env/$env/terraform.tfvars" -compact-warnings -out="$file_name.tfplan" $other)
-      if [ "$plan" != "0" ]; then
-          rm "$file_name.tfplan" 2>/dev/null
-          exit 1
-      fi
+      terraform plan -var-file="./env/$env/terraform.tfvars" -compact-warnings -out="$file_name.tfplan" $other
 
-      # check if changes are present
+
+      # check if changes or errors are present
       no_changes=$(terraform show -no-color "$file_name.tfplan" | grep -c "No changes")
+      errors=$(terraform show -no-color "$file_name.tfplan" | grep -c "Planning failed")
       if [ "$no_changes" == 1 ]; then
         echo "${bold}No changes to apply!${normal}"
         rm "$file_name.tfplan" 2>/dev/null
         exit 0
+      fi
+      if [ "$errors" == 1 ]; then
+        rm "$file_name.tfplan" 2>/dev/null
+        exit 1
       fi
 
       # ask user confirmation before applying changes
