@@ -195,6 +195,7 @@ function other_actions() {
       # plan to file
       plan=$(terraform plan -var-file="./env/$env/terraform.tfvars" -compact-warnings -out="$file_name.tfplan" $other)
       if [ "$plan" != "0" ]; then
+          rm "$file_name.tfplan" 2>/dev/null
           exit 1
       fi
 
