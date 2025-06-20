@@ -193,7 +193,11 @@ function other_actions() {
       source "$root_folder/.terraform-audit"
 
       # plan to file
-      terraform plan -var-file="./env/$env/terraform.tfvars" -compact-warnings -out="$file_name.tfplan" $other
+      plan=$(terraform plan -var-file="./env/$env/terraform.tfvars" -compact-warnings -out="$file_name.tfplan" $other)
+      if [ "$plan" != "0" ]; then
+          exit 1
+      fi
+
       # check if changes are present
       no_changes=$(terraform show -no-color "$file_name.tfplan" | grep -c "No changes")
       if [ "$no_changes" == 1 ]; then
