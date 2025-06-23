@@ -5,7 +5,7 @@
 ############################################################
 # Global variables
 # Version format x.y accepted
-vers="2.0"
+vers="2.1"
 script_name=$(basename "$0")
 git_repo="https://raw.githubusercontent.com/pagopa/eng-common-scripts/main/azure/${script_name}"
 tmp_file="${script_name}.new"
@@ -15,9 +15,10 @@ if [ -n "$3" ] && [ -f "$3" ]; then
 else
   FILE_ACTION=false
 fi
-bold=$(tput bold)
-normal=$(tput sgr0)
-red=$(tput setaf 1)
+#fixme find a way to color output on local and on devops agent, where tput returns an error
+bold=""
+normal=""
+red=""
 # Define functions
 function clean_environment() {
   rm -rf .terraform
